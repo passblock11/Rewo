@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rewo: ^1.0.2
+  rewo: ^1.0.3
 ```
 
 Or scaffold a full project with the CLI:
@@ -48,20 +48,44 @@ cp .env.example .env
 ### Development (hot reload)
 
 ```bash
-dart run bin/dev.dart
-# or
-dart run bin/server.dart --dev
+rewo run --dev
+```
+
+Or the equivalent:
+
+```bash
+rewo dev
+```
+
+Optional custom port:
+
+```bash
+rewo run --dev 3000
 ```
 
 ### Production
 
 ```bash
-# Run with Dart
-dart run bin/server.dart
+rewo run
+```
 
-# Or compile and run a native binary (deploy)
+Optional port:
+
+```bash
+rewo run 3000
+```
+
+### Production binary (deploy)
+
+```bash
 dart compile exe bin/server.dart -o server
 ./server
+```
+
+Requires global CLI once:
+
+```bash
+dart pub global activate rewo
 ```
 
 Your project layout:
@@ -110,7 +134,7 @@ static List<RewoModule> get modules => [
 | Category | Feature |
 |----------|---------|
 | **CLI** | `rewo create` project scaffolding |
-| **Dev** | Hot-reload via `bin/dev.dart` or `rewo dev` |
+| **Dev** | Hot-reload via `rewo run --dev` or `rewo dev` |
 | **HTTP** | REST routing, native server, HTTP/2, OpenAPI |
 | **Auth** | JWT, sessions, Bearer tokens, role-based access |
 | **Core** | Dependency injection, events, scheduler, modules |
@@ -150,23 +174,29 @@ STORAGE_PATH=./storage
 
 ## Run the server
 
+Requires `dart pub global activate rewo` once.
+
 ### Development (hot reload)
 
 ```bash
-dart run bin/dev.dart
+rewo run --dev
 # or
-dart run bin/server.dart --dev
+rewo dev
 ```
 
-Saves in `lib/` restart the server automatically. Use a custom port: `dart run bin/dev.dart 3000`.
+Saves in `lib/` restart the server automatically. Custom port: `rewo run --dev 3000`.
 
 ### Production
 
 ```bash
-# Run with Dart
-dart run bin/server.dart
+rewo run
+```
 
-# Compile to a native binary (recommended for deploy)
+Custom port: `rewo run 3000`.
+
+### Deploy (compiled binary)
+
+```bash
 dart compile exe bin/server.dart -o server
 ./server
 ```
@@ -179,9 +209,10 @@ Place `.env` next to the binary, or set `PORT`, `JWT_SECRET`, etc. in your envir
 
 ```bash
 rewo create my_api                        # scaffold project
-dart run bin/dev.dart                     # dev — hot reload
-dart run bin/server.dart --dev            # same as dev
-dart run bin/server.dart                  # production run
+rewo run --dev                            # dev — hot reload
+rewo dev                                  # same as rewo run --dev
+rewo run                                  # production server
+rewo run 3000                             # production on port 3000
 dart compile exe bin/server.dart -o server   # build binary
 ./server                                  # run compiled binary
 dart test                                 # tests

@@ -1,3 +1,9 @@
+## 1.0.3
+
+- `rewo run` runs the current project's `bin/server.dart` (production)
+- `rewo run --dev` / `rewo dev` for hot-reload development
+- Updated README and getting-started docs for dev/prod workflow
+
 ## 1.0.2
 
 - Fix `.gitignore` / `.pubignore` excluding `lib/src/storage/` from repo and pub publish

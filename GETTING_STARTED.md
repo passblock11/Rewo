@@ -34,12 +34,18 @@ cp .env.example .env
 
 ## 2. Run your API
 
+Install the CLI once:
+
+```bash
+dart pub global activate rewo
+```
+
 ### Development (hot reload)
 
 ```bash
-dart run bin/dev.dart
+rewo run --dev
 # or
-dart run bin/server.dart --dev
+rewo dev
 ```
 
 Open **http://localhost:8080** — try `/health`, `/api/items`. Edits in `lib/` restart the server automatically.
@@ -47,10 +53,12 @@ Open **http://localhost:8080** — try `/health`, `/api/items`. Edits in `lib/` 
 ### Production
 
 ```bash
-# Run with Dart
-dart run bin/server.dart
+rewo run
+```
 
-# Compile and run native binary (recommended for deploy)
+### Deploy (compiled binary)
+
+```bash
 dart compile exe bin/server.dart -o server
 ./server
 ```
@@ -142,8 +150,8 @@ One binary, all your APIs included.
 ```bash
 rewo create my_api              # scaffold new project
 rewo create my_api --output ..  # create in parent folder
-rewo dev                        # hot-reload (from project root)
-rewo run                        # minimal demo server
+rewo run --dev                  # hot-reload (from project root)
+rewo run                        # production server
 ```
 
 ---
@@ -157,7 +165,7 @@ rewo run                        # minimal demo server
 | JWT + sessions | Built-in auth |
 | OpenAPI | Auto `/openapi.json` |
 | `TestApp` | Integration tests without HTTP |
-| Hot reload | `bin/dev.dart` or `--dev` |
+| Hot reload | `rewo run --dev` or `rewo dev` |
 
 ---
 

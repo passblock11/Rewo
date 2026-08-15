@@ -7,6 +7,7 @@ A [Rewo](https://pub.dev/packages/rewo) API project by [Avanti Inc.](https://ava
 ```bash
 dart pub get
 cp .env.example .env
+dart pub global activate rewo   # once per machine
 ```
 
 Server runs at **http://localhost:8080**
@@ -14,18 +15,20 @@ Server runs at **http://localhost:8080**
 ### Development (hot reload)
 
 ```bash
-dart run bin/dev.dart
+rewo run --dev
 # or
-dart run bin/server.dart --dev
+rewo dev
 ```
 
 ### Production
 
 ```bash
-# Run with Dart
-dart run bin/server.dart
+rewo run
+```
 
-# Compile and run native binary (deploy)
+### Deploy (compiled binary)
+
+```bash
 dart compile exe bin/server.dart -o server
 ./server
 ```
@@ -40,9 +43,10 @@ dart compile exe bin/server.dart -o server
 
 | Command | Use |
 |---------|-----|
-| `dart run bin/dev.dart` | Dev server with hot reload |
-| `dart run bin/server.dart --dev` | Same as above |
-| `dart run bin/server.dart` | Production (no hot reload) |
+| `rewo run --dev` | Dev server with hot reload |
+| `rewo dev` | Same as above |
+| `rewo run` | Production server |
+| `rewo run 3000` | Production on custom port |
 | `dart compile exe bin/server.dart -o server` | Build production binary |
 | `./server` | Run compiled binary |
 | `dart test` | Run tests |

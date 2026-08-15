@@ -6,8 +6,8 @@ import 'package:rewo/rewo.dart';
 ///
 /// ```bash
 /// rewo create my_api          # scaffold new project (like express)
-/// rewo dev                    # hot-restart dev server
-/// rewo run [port]             # minimal demo server
+/// rewo run --dev              # hot-reload dev server (current project)
+/// rewo run                    # production server (current project)
 /// ```
 Future<void> main(List<String> args) async {
   if (args.isEmpty || args.first == 'help' || args.first == '--help') {
@@ -21,18 +21,25 @@ Future<void> main(List<String> args) async {
     case 'create':
       await _create(args.skip(1).toList());
     case 'dev':
-      await _dev(args.skip(1).toList());
-    case 'run':
-      await _run(args.skip(1).toList());
-    default:
-      // Backward compat: rewo 8080
-      if (int.tryParse(command) != null) {
-        await _run(args);
+      final devArgs = args.skip(1).toList();
+      if (devArgs.isNotEmpty &&
+          devArgs.first.endsWith('.dart') &&
+          !devArgs.first.startsWith('--')) {
+        await _runProject([
+          '--dev',
+          '--entry',
+          devArgs.first,
+          ...devArgs.skip(1),
+        ]);
       } else {
-        stderr.writeln('Unknown command: $command\n');
-        _printHelp();
-        exit(1);
+        await _runProject(['--dev', ...devArgs]);
       }
+    case 'run':
+      await _runProject(args.skip(1).toList());
+    default:
+      stderr.writeln('Unknown command: $command\n');
+      _printHelp();
+      exit(1);
   }
 }
 
@@ -97,7 +104,8 @@ Next steps:
   cd ${path.split(Platform.pathSeparator).last}
   dart pub get
   cp .env.example .env
-  dart run bin/server.dart
+  rewo run --dev    # development (hot reload)
+  rewo run          # production
 ''');
   } on Object catch (e) {
     stderr.writeln('Error: $e');
@@ -105,36 +113,74 @@ Next steps:
   }
 }
 
-Future<void> _dev(List<String> args) async {
-  final entry = args.isNotEmpty ? args.first : 'bin/server.dart';
-  final runner = HotRestartRunner(
-    entrypoint: entry,
-    watchPaths: const ['lib', 'bin'],
-    args: args.skip(1).toList(),
+Future<void> _runProject(List<String> args) async {
+  const defaultEntry = 'bin/server.dart';
+  final devMode = args.contains('--dev') || args.contains('-d');
+
+  String entry = defaultEntry;
+  final serverArgs = <String>[];
+
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg == '--dev' || arg == '-d') {
+      continue;
+    }
+    if (arg == '--entry' && i + 1 < args.length) {
+      entry = args[++i];
+      continue;
+    }
+    serverArgs.add(arg);
+  }
+
+  if (!File(entry).existsSync()) {
+    stderr.writeln('''
+Error: $entry not found in ${Directory.current.path}
+
+Run from your Rewo project root, or scaffold one:
+
+  rewo create my_api
+  cd my_api
+  rewo run --dev
+''');
+    exit(1);
+  }
+
+  if (devMode) {
+    final runner = HotRestartRunner(
+      entrypoint: entry,
+      watchPaths: const ['lib', 'bin', '.env'],
+      args: serverArgs,
+      childEnvironment: {rewoHotChildEnv: '1'},
+    );
+
+    ProcessSignal.sigint.watch().listen((_) async {
+      await runner.stop();
+      exit(0);
+    });
+
+    await runner.run();
+    return;
+  }
+
+  final process = await Process.start(
+    'dart',
+    ['run', entry, ...serverArgs],
+    workingDirectory: Directory.current.path,
   );
 
+  process.stdout
+      .transform(const SystemEncoding().decoder)
+      .listen(stdout.write);
+  process.stderr
+      .transform(const SystemEncoding().decoder)
+      .listen(stderr.write);
+
   ProcessSignal.sigint.watch().listen((_) async {
-    await runner.stop();
+    process.kill(ProcessSignal.sigint);
     exit(0);
   });
 
-  await runner.run();
-}
-
-Future<void> _run(List<String> args) async {
-  final port = args.isNotEmpty ? int.tryParse(args.first) ?? 8080 : 8080;
-
-  await Rewo.run((app) {
-    app.get('/', (_) async => {
-          'framework': 'Rewo',
-          'hint': 'Run `rewo create my_api` to scaffold your own project',
-        });
-    app.get('/health', (_) async => {'status': 'ok'});
-  }, config: AppConfig(port: port));
-
-  // ignore: avoid_print
-  print('Press Ctrl+C to stop');
-  await ProcessSignal.sigint.watch().first;
+  exit(await process.exitCode);
 }
 
 void _printHelp() {
@@ -142,9 +188,15 @@ void _printHelp() {
 Rewo CLI
 
 Usage:
-  rewo create <name>   Scaffold a new API project (Express-style)
-  rewo dev [entry]     Hot-restart dev server (default: bin/server.dart)
-  rewo run [port]      Run minimal demo server
+  rewo create <name>       Scaffold a new API project (Express-style)
+  rewo run [--dev] [port]  Run bin/server.dart (production, or --dev for hot reload)
+  rewo dev [entry] [port]  Shortcut for rewo run --dev
+
+Examples:
+  rewo run --dev           Development with hot reload
+  rewo run                 Production server
+  rewo run 3000            Production on port 3000
+  rewo run --dev 3000      Dev server on port 3000
 
 Global install:
   dart pub global activate rewo

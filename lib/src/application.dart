@@ -175,6 +175,21 @@ class Rewo {
     _addRoute('POST', path, handler, middleware: middleware, statusCode: statusCode);
   }
 
+  void put(String path, RouteHandler handler,
+      {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
+    _addRoute('PUT', path, handler, middleware: middleware, statusCode: statusCode);
+  }
+
+  void patch(String path, RouteHandler handler,
+      {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
+    _addRoute('PATCH', path, handler, middleware: middleware, statusCode: statusCode);
+  }
+
+  void delete(String path, RouteHandler handler,
+      {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
+    _addRoute('DELETE', path, handler, middleware: middleware, statusCode: statusCode);
+  }
+
   void schedule(int intervalSeconds, FutureOr<void> Function() task) {
     scheduler.cronSeconds(intervalSeconds, task);
   }

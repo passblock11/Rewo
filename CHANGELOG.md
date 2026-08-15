@@ -1,3 +1,7 @@
+## 1.0.8
+
+- Add `put`, `patch`, and `delete` route helpers on `Rewo`
+
 ## 1.0.7
 
 - Auto-connect `PostgresPool` when `DATABASE_URL` is set in `.env`

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:{{project_name}}/app.dart';
+import 'package:example_app/app.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 

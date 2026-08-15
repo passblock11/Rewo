@@ -80,23 +80,34 @@ class CreateProjectCommand {
   }
 
   String _substitute(String input) {
-    return input
-        .replaceAll('{{project_name}}', snakeName)
+    var result = input
+        .replaceAll('example_app', snakeName)
         .replaceAll('{{title}}', titleName)
-        .replaceAll('{{description}}', description ?? 'A Rewo API project')
-        .replaceAll('{{dependency_block}}', _dependencyBlock());
+        .replaceAll('{{description}}', description ?? 'A Rewo API project');
+    if (input.contains('dependencies:') && input.contains('rewo:')) {
+      result = _injectDependencies(result);
+    }
+    return result;
   }
 
-  String _dependencyBlock() {
+  String _injectDependencies(String pubspec) {
+    return pubspec.replaceFirst(
+      RegExp(r'  rewo:\n(?:    .+\n)+'),
+      '${_dependenciesBlock()}\n',
+    );
+  }
+
+  String _dependenciesBlock() {
     if (frameworkPath != null) {
       final abs = p.normalize(p.absolute(frameworkPath!));
-      return '    path: $abs';
+      return '  rewo:\n    path: $abs';
     }
     if (frameworkGitUrl != null) {
-      return '''    git:
+      return '''  rewo:
+    git:
       url: $frameworkGitUrl''';
     }
-    return '    ^$frameworkVersion';
+    return '  rewo: ^$frameworkVersion';
   }
 
   static String _toSnakeCase(String name) {

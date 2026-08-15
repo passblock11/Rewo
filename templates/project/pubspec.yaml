@@ -1,5 +1,5 @@
-name: {{project_name}}
-description: {{description}}
+name: example_app
+description: A Rewo API project
 version: 1.0.0
 publish_to: none
 
@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   rewo:
-{{dependency_block}}
+    path: ../../
 
 dev_dependencies:
   http: ^1.2.2

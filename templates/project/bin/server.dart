@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:{{project_name}}/app.dart';
+import 'package:example_app/app.dart';
 import 'package:rewo/rewo.dart';
 
 /// Entry point — compile with: dart compile exe bin/server.dart -o server

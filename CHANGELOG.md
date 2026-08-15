@@ -1,3 +1,8 @@
+## 1.0.10
+
+- Move codegen deps (`build`, `source_gen`, `analyzer`) to dev_dependencies so apps can `dart compile exe` for production deploys
+- Stop exporting `codegen/builder.dart` from the main library
+
 ## 1.0.9
 
 - Pluggable database layer: any DB via `configureDatabase` or custom `DatabasePlugin`

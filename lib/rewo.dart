@@ -5,7 +5,6 @@ export 'src/annotations.dart';
 export 'src/application.dart';
 export 'src/bootstrap.dart';
 export 'src/cli/create_project.dart';
-export 'src/codegen/builder.dart';
 export 'src/auth/jwt.dart';
 export 'src/cache/cache.dart';
 export 'src/config.dart';

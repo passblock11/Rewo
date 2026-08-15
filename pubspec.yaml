@@ -1,17 +1,46 @@
-name: dart_backend_framework
-description: A Spring-like, Flutter-simple backend framework for Dart.
-version: 0.1.0
-publish_to: none
+name: rewo
+description: >-
+  Rewo — a modular Dart backend framework. REST APIs, DI, JWT auth,
+  OpenAPI, hot-reload dev, and CLI project scaffolding. Spring-inspired,
+  Express-simple.
+version: 1.0.0
+homepage: https://avantiinc.xyz
+repository: https://github.com/passblock11/Rewo
+issue_tracker: https://github.com/passblock11/Rewo/issues
+documentation: https://github.com/passblock11/Rewo#readme
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
+
+topics:
+  - server
+  - backend
+  - rest
+  - api
+  - framework
 
 dependencies:
   shelf: ^1.4.2
   shelf_router: ^1.1.4
   http: ^1.2.2
   meta: ^1.12.0
+  json_annotation: ^4.9.0
+  postgres: ^3.4.5
+  http2: ^2.3.1
+  watcher: ^1.1.1
+  path: ^1.9.1
+  crypto: ^3.0.6
+  mime: ^2.0.0
+  build: ^2.4.1
+  source_gen: ^2.0.0
+  analyzer: ^7.3.0
 
 dev_dependencies:
   lints: ^4.0.0
   test: ^1.25.8
+  build_runner: ^2.4.13
+  json_serializable: ^6.9.0
+
+executables:
+  rewo: rewo
+  rewo_dev: rewo_dev

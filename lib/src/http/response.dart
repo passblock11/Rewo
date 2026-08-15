@@ -2,21 +2,29 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-/// HTTP response helpers.
+/// HTTP response helpers — optimized for minimal allocations.
 class AppResponse {
   AppResponse._();
+
+  static const _jsonContentType = 'application/json; charset=utf-8';
+  static const _textContentType = 'text/plain; charset=utf-8';
+
+  static final _jsonHeaderCache = Map<String, List<String>>.unmodifiable({
+    'content-type': [_jsonContentType],
+  });
 
   static shelf.Response json(
     Object? data, {
     int statusCode = 200,
     Map<String, String>? headers,
   }) {
+    final body = utf8.encode(jsonEncode(data));
     return shelf.Response(
       statusCode,
-      body: jsonEncode(data),
-      headers: {
-        'content-type': 'application/json',
-        ...?headers,
+      body: body,
+      headers: headers == null ? _jsonHeaderCache : {
+        'content-type': _jsonContentType,
+        ...headers,
       },
     );
   }
@@ -30,7 +38,7 @@ class AppResponse {
       statusCode,
       body: body,
       headers: {
-        'content-type': 'text/plain; charset=utf-8',
+        'content-type': _textContentType,
         ...?headers,
       },
     );
@@ -49,19 +57,13 @@ class AppResponse {
     if (result is Map || result is List) {
       return json(result, statusCode: statusCode);
     }
-    if (_hasToJson(result)) {
-      return json((result as dynamic).toJson(), statusCode: statusCode);
-    }
-    return text(result.toString(), statusCode: statusCode);
-  }
-
-  static bool _hasToJson(Object? value) {
     try {
       // ignore: avoid_dynamic_calls
-      (value as dynamic).toJson;
-      return true;
-    } catch (_) {
-      return false;
-    }
+      final encoded = (result as dynamic).toJson();
+      if (encoded is Map || encoded is List) {
+        return json(encoded, statusCode: statusCode);
+      }
+    } catch (_) {}
+    return text(result.toString(), statusCode: statusCode);
   }
 }

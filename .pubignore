@@ -1,0 +1,9 @@
+.env
+.env.*
+storage/
+test_storage/
+benchmark/
+.dart_tool/
+.git/
+PUBLISHING.md
+tool/

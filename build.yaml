@@ -1,0 +1,17 @@
+targets:
+  $default:
+    builders:
+      rewo|route:
+        enabled: true
+        generate_for:
+          - example/**
+          - lib/**
+          - test/**
+
+builders:
+  route:
+    import: "package:rewo/src/codegen/builder.dart"
+    builder_factories: ["routeBuilder"]
+    build_extensions: {".dart": [".routes.g.dart"]}
+    auto_apply: dependents
+    build_to: source

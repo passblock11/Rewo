@@ -1,60 +1,157 @@
-# DartServe — Dart Backend Framework
+# Rewo (`rewo`)
 
-A Spring-like, Flutter-simple backend framework for Dart.
+[![pub package](https://img.shields.io/pub/v/rewo.svg)](https://pub.dev/packages/rewo)
+[![publisher](https://img.shields.io/pub/publisher/rewo)](https://pub.dev/publishers/avantiinc.xyz)
 
-## Features
+> Spring power. Flutter simplicity. Express ease.
 
-- **HTTP routing** — REST controllers with fluent route registration
-- **Dependency injection** — constructor-based, singleton/factory/lazy
-- **Middleware** — logging, CORS, error handling, auth
-- **Validation** — request body validation
-- **Events** — in-process event bus
-- **Scheduling** — interval-based cron tasks
-- **Transactions** — commit/rollback hooks
-- **Repository** — generic in-memory CRUD
+**Rewo** is a modular Dart backend framework for building REST APIs. Scaffold a new project in one command, add modules, compile to a native binary — one server, all APIs included.
 
-## Quick start
+Published by [Avanti Inc.](https://avantiinc.xyz) · [pub.dev](https://pub.dev/packages/rewo)
+
+---
+
+## Install
+
+Add to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  rewo: ^1.0.0
+```
+
+Or scaffold a full project with the CLI:
 
 ```bash
+dart pub global activate rewo
+rewo create my_api
+```
+
+Or scaffold without global install (from any project that has `rewo`):
+
+```bash
+dart pub global activate rewo
+rewo create my_api
+```
+
+---
+
+## Quick start (new project)
+
+```bash
+rewo create my_api
+cd my_api
 dart pub get
-dart run example/main.dart
+cp .env.example .env
+dart run bin/dev.dart        # hot reload
+# or
+dart run bin/server.dart     # production run
 ```
 
-## Run tests
+Your project layout:
 
-```bash
-dart test
-dart run example/main.dart test   # integration smoke test
+```
+my_api/
+  bin/server.dart       # entry point
+  bin/dev.dart          # hot-reload dev server
+  lib/app.dart          # register modules here
+  lib/modules/          # your API modules
+  test/
+  .env
 ```
 
-## Example controller
+---
+
+## Add an API module
 
 ```dart
-class UserController extends RestController {
-  UserController(this._users);
-  final UserService _users;
+// lib/modules/hello_module.dart
+import 'package:rewo/rewo.dart';
+
+class HelloModule implements RewoModule {
+  @override
+  String get name => 'hello';
 
   @override
-  String get basePath => '/users';
-
-  @override
-  void registerRoutes(RouteRegistrar r) {
-    r.get('/', list);
-    r.post('/', create, statusCode: 201);
-    r.get('/:id', get);
+  void register(Rewo app) {
+    app.get('/api/hello', (_) async => {'message': 'Hello World'});
   }
-
-  Future<List<Map<String, dynamic>>> list(RequestContext ctx) async { ... }
 }
 ```
 
-## API endpoints (example app)
+Register in `lib/app.dart`:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check |
-| GET | `/users` | List users |
-| POST | `/users` | Create user |
-| GET | `/users/:id` | Get user |
-| DELETE | `/users/:id` | Delete user |
-| GET | `/users/admin/stats` | Admin stats (requires Bearer token) |
+```dart
+static List<RewoModule> get modules => [
+  HelloModule(),
+];
+```
+
+---
+
+## Features
+
+| Category | Feature |
+|----------|---------|
+| **CLI** | `rewo create` project scaffolding |
+| **Dev** | Hot-reload via `bin/dev.dart` or `rewo dev` |
+| **HTTP** | REST routing, native server, HTTP/2, OpenAPI |
+| **Auth** | JWT, sessions, Bearer tokens, role-based access |
+| **Core** | Dependency injection, events, scheduler, modules |
+| **Data** | Validation, in-memory repo, transactions, pagination |
+| **Ops** | Health/readiness, metrics, graceful shutdown |
+| **Config** | `.env` loading and validation |
+| **Deploy** | `dart compile exe bin/server.dart -o server` |
+
+---
+
+## Minimal app (no scaffold)
+
+```dart
+import 'package:rewo/rewo.dart';
+
+void main() async {
+  await Rewo.run((app) {
+    app.get('/hello', (_) async => {'message': 'Hello World'});
+  }, config: AppConfig(port: 8080));
+}
+```
+
+---
+
+## Configuration (`.env`)
+
+```env
+PORT=8080
+HOST=0.0.0.0
+ENV=development
+JWT_SECRET=change-me-in-production
+SERVER_ENGINE=native
+STORAGE_PATH=./storage
+```
+
+---
+
+## Commands
+
+```bash
+rewo create my_api          # scaffold project
+dart run bin/dev.dart             # hot-reload dev
+dart run bin/server.dart          # run server
+dart test                         # tests
+dart compile exe bin/server.dart -o server
+```
+
+---
+
+## Documentation
+
+- [Getting Started](https://github.com/passblock11/Rewo/blob/main/GETTING_STARTED.md)
+- [Performance](https://github.com/passblock11/Rewo/blob/main/PERFORMANCE.md)
+- [Changelog](CHANGELOG.md)
+
+---
+
+## License
+
+MIT © [Avanti Inc.](https://avantiinc.xyz)

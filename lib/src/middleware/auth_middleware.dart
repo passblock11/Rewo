@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import '../context.dart';
 import '../errors.dart';
 import 'middleware.dart';
 
@@ -12,7 +11,7 @@ class AuthMiddleware extends Middleware {
 
   @override
   MiddlewareHandler get handler => (ctx, next) async {
-        final auth = ctx.headers['authorization'] ?? ctx.headers['Authorization'];
+        final auth = ctx.headers['authorization'];
         if (auth == null || !auth.startsWith('Bearer ')) {
           if (optional) return next(ctx);
           throw UnauthorizedException('Missing bearer token');
@@ -25,18 +24,7 @@ class AuthMiddleware extends Middleware {
           final userId = parts.first;
           final roles = parts.length > 1 ? parts.sublist(1) : <String>[];
 
-          final enriched = RequestContext(
-            method: ctx.method,
-            path: ctx.path,
-            headers: ctx.headers,
-            queryParameters: ctx.queryParameters,
-            pathParameters: ctx.pathParameters,
-            bodyBytes: ctx.bodyBytes,
-            container: ctx.container,
-            userId: userId,
-            roles: roles,
-          );
-          return next(enriched);
+          return next(ctx.withAuth(userId: userId, roles: roles));
         } catch (_) {
           throw UnauthorizedException('Invalid token');
         }

@@ -5,20 +5,32 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
+import 'config/dotenv.dart';
 import 'config.dart';
 import 'container.dart';
 import 'context.dart';
 import 'events/event_bus.dart';
+import 'http/http2_server.dart';
+import 'http/native_server.dart';
 import 'http/response.dart';
+import 'http/route_table.dart';
+import 'http/server_engine.dart';
 import 'middleware/cors_middleware.dart';
 import 'middleware/error_middleware.dart';
 import 'middleware/logging_middleware.dart';
 import 'middleware/middleware.dart';
+import 'middleware/security_middleware.dart';
+import 'middleware/static_files_middleware.dart';
+import 'openapi/openapi.dart';
+import 'ops/health.dart';
+import 'performance/http_tuning.dart';
+import 'performance/isolate_pool.dart';
 import 'scheduler/scheduler.dart';
 import 'transaction/transaction.dart';
 
-typedef ConfigureCallback = void Function(DartServe app);
-typedef RouteHandler = Future<dynamic> Function(RequestContext ctx);
+export 'http/route_table.dart' show RouteHandler;
+
+typedef ConfigureCallback = void Function(Rewo app);
 
 abstract class RestController {
   String get basePath => '';
@@ -28,7 +40,7 @@ abstract class RestController {
 class RouteRegistrar {
   RouteRegistrar(this._app, this._basePath);
 
-  final DartServe _app;
+  final Rewo _app;
   final String _basePath;
 
   void get(String path, RouteHandler handler,
@@ -68,24 +80,44 @@ class RouteRegistrar {
   }
 }
 
-class DartServe {
-  DartServe({AppConfig? config})
-      : config = config ?? AppConfig.fromEnvironment(),
+class Rewo {
+  Rewo({
+    AppConfig? config,
+    ServerEngine? engine,
+    SecurityContext? securityContext,
+  })  : config = config ?? AppConfig.fromEnvironment(),
+        engine = engine ?? config?.engine ?? ServerEngine.shelf,
         container = ServiceContainer(),
         events = EventBus(),
         transactions = TransactionManager(),
-        scheduler = Scheduler();
+        scheduler = Scheduler(),
+        _securityContext = securityContext;
 
   final AppConfig config;
+  final ServerEngine engine;
   final ServiceContainer container;
   final EventBus events;
   final TransactionManager transactions;
   final Scheduler scheduler;
+  final SecurityContext? _securityContext;
 
   final Router _router = Router();
+  final RouteTable _routeTable = RouteTable();
   final List<MiddlewareHandler> _globalMiddleware = [];
-  final List<_RouteDefinition> _routes = [];
-  HttpServer? _server;
+  final List<_RouteInput> _routes = [];
+  IsolatePool? _isolatePool;
+
+  HttpServer? _shelfServer;
+  NativeHttpServer? _nativeServer;
+  Http2ServerEngine? _http2Server;
+
+  final HealthCheck health = HealthCheck();
+  final Metrics metrics = Metrics();
+  final OpenApiGenerator openApi = OpenApiGenerator();
+
+  RouteTable get routeTable => _routeTable;
+
+  void compileRoutesForTest() => _compileRoutes();
 
   void singleton<T>(T instance) => container.registerSingleton<T>(instance);
 
@@ -101,8 +133,30 @@ class DartServe {
 
   void useDefaults() {
     use(ErrorMiddleware());
-    use(CorsMiddleware());
-    if (config.logRequests) use(LoggingMiddleware());
+    use(RequestIdMiddleware());
+    use(SecurityHeadersMiddleware());
+    use(RateLimitMiddleware(maxRequests: config.rateLimit));
+    use(TimeoutMiddleware());
+    if (!config.performance.enabled) use(CorsMiddleware());
+    if (config.logRequests) {
+      use(LoggingMiddleware());
+    } else {
+      use(StructuredLoggingMiddleware());
+    }
+  }
+
+  void useOpsEndpoints() {
+    get('/health', (_) async => health.liveness());
+    get('/ready', (_) async => health.readiness());
+    get('/metrics', (_) async {
+      metrics.increment('http_requests_total');
+      return metrics.export();
+    });
+    get('/openapi.json', (_) async => openApi.generate(_routeTable));
+  }
+
+  void useStaticFiles(String directory, {String prefix = '/public'}) {
+    use(StaticFilesMiddleware(directory, prefix: prefix));
   }
 
   void mount(RestController controller) {
@@ -124,98 +178,168 @@ class DartServe {
     scheduler.cronSeconds(intervalSeconds, task);
   }
 
-  Future<void> listen() async {
-    for (final route in _routes) {
-      Future<shelf.Response> shelfHandler(shelf.Request request) async {
-        final ctx = await _buildContext(request, route);
-        final pipeline = MiddlewarePipeline([
-          ..._globalMiddleware,
-          ...route.middleware,
-        ]);
-        final response = await pipeline.run(ctx, (c) async {
-          final result = await route.handler(c);
-          return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
-        });
-        return response;
-      }
+  IsolatePool get isolates {
+    return _isolatePool ??= sharedIsolatePool(
+      workers: config.performance.isolateWorkers > 0
+          ? config.performance.isolateWorkers
+          : 4,
+    );
+  }
 
+  Future<void> listen() async {
+    _compileRoutes();
+
+    if (config.performance.isolateWorkers > 0) {
+      _isolatePool = sharedIsolatePool(workers: config.performance.isolateWorkers);
+    }
+
+    switch (engine) {
+      case ServerEngine.shelf:
+        await _listenShelf();
+      case ServerEngine.native:
+        await _listenNative();
+      case ServerEngine.http2:
+        await _listenHttp2();
+    }
+  }
+
+  Future<void> _listenShelf() async {
+    for (final route in _routeTable.all) {
+      Future<shelf.Response> shelfHandler(shelf.Request request) async {
+        return _handleShelf(request, route);
+      }
       switch (route.method) {
         case 'GET':
-          _router.get(route.shelfPath, shelfHandler);
+          _router.get(toShelfPath(route.path), shelfHandler);
         case 'POST':
-          _router.post(route.shelfPath, shelfHandler);
+          _router.post(toShelfPath(route.path), shelfHandler);
         case 'PUT':
-          _router.put(route.shelfPath, shelfHandler);
+          _router.put(toShelfPath(route.path), shelfHandler);
         case 'DELETE':
-          _router.delete(route.shelfPath, shelfHandler);
+          _router.delete(toShelfPath(route.path), shelfHandler);
         case 'PATCH':
-          _router.patch(route.shelfPath, shelfHandler);
+          _router.patch(toShelfPath(route.path), shelfHandler);
       }
     }
 
-    _server = await shelf_io.serve(_router.call, config.host, config.port);
+    _shelfServer = await shelf_io.serve(_router.call, config.host, config.port);
+    tuneHttpServer(_shelfServer!, config.performance);
+    _printStarted('shelf');
+  }
+
+  Future<void> _listenNative() async {
+    _nativeServer = NativeHttpServer(
+      config: config,
+      routeTable: _routeTable,
+      container: container,
+    );
+    await _nativeServer!.listen();
+  }
+
+  Future<void> _listenHttp2() async {
+    final ctx = _securityContext ?? SecurityContext();
+    _http2Server = Http2ServerEngine(
+      config: config,
+      routeTable: _routeTable,
+      container: container,
+      securityContext: ctx,
+    );
+    await _http2Server!.listen();
+    // HTTP/2 engine accepts sockets via handleSocket — use native for dev HTTP/1.1
+    await _listenNative();
+  }
+
+  Future<shelf.Response> _handleShelf(shelf.Request request, CompiledRoute route) async {
+    final lazy = config.performance.lazyBodyParsing;
+    final ctx = RequestContext(
+      method: request.method,
+      path: request.requestedUri.path,
+      headers: buildHeaderMap(request.headersAll),
+      queryParameters: request.url.queryParameters,
+      pathParameters: route.extractParams(request.requestedUri.path),
+      bodyBytes: lazy ? null : await BodyReader.read(request.read()),
+      bodyLoader: lazy ? () => BodyReader.read(request.read()) : null,
+      container: container,
+    );
+    return route.pipeline.run(ctx, (c) async {
+      final result = await route.handler(c);
+      return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+    });
+  }
+
+  void _printStarted(String mode) {
     // ignore: avoid_print
-    print('🚀 DartServe running on http://${config.host}:${config.port}');
+    print('🚀 Rewo [$mode] on http://${config.host}:${config.port}'
+        '${config.performance.enabled ? ' [turbo]' : ''}');
+  }
+
+  void _compileRoutes() {
+    _routeTable.clear();
+    for (final route in _routes) {
+      final compiled = CompiledRoute(
+        method: route.method,
+        path: route.path,
+        handler: route.handler,
+        middleware: route.middleware,
+        statusCode: route.statusCode,
+        pipeline: MiddlewarePipeline([
+          ..._globalMiddleware,
+          ...route.middleware,
+        ]),
+      );
+      _routeTable.add(compiled);
+    }
   }
 
   Future<void> close() async {
     scheduler.stopAll();
-    await _server?.close(force: true);
+    await _isolatePool?.close();
+    await _shelfServer?.close(force: true);
+    await _nativeServer?.close();
+    await _http2Server?.close();
   }
 
-  static Future<DartServe> run(ConfigureCallback configure, {AppConfig? config}) async {
-    final app = DartServe(config: config);
+  static Future<Rewo> run(
+    ConfigureCallback configure, {
+    AppConfig? config,
+    ServerEngine? engine,
+    String envFile = '.env',
+  }) async {
+    await DotEnv.load(envFile);
+    final app = Rewo(config: config, engine: engine);
     app.useDefaults();
     configure(app);
     await app.listen();
+
+    Future<void> shutdown() async {
+      // ignore: avoid_print
+      print('Shutting down gracefully...');
+      await app.close();
+      exit(0);
+    }
+
+    ProcessSignal.sigint.watch().listen((_) => shutdown());
+    ProcessSignal.sigterm.watch().listen((_) => shutdown());
+
     return app;
   }
 
   void _addRoute(String method, String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _routes.add(_RouteDefinition(
+    _routes.add(_RouteInput(
       method: method,
-      path: _normalizePath(path),
-      shelfPath: _toShelfPath(path),
+      path: normalizePath(path),
       handler: handler,
       middleware: middleware ?? [],
       statusCode: statusCode,
     ));
   }
-
-  Future<RequestContext> _buildContext(shelf.Request request, _RouteDefinition route) async {
-    final body = await request.read().expand((e) => e).toList();
-    return RequestContext(
-      method: request.method,
-      path: request.requestedUri.path,
-      headers: {for (final h in request.headersAll.entries) h.key.toLowerCase(): h.value.join(',')},
-      queryParameters: request.url.queryParameters,
-      pathParameters: _matchPathParams(route.path, request.requestedUri.path),
-      bodyBytes: body,
-      container: container,
-    );
-  }
-
-  Map<String, String> _matchPathParams(String routePath, String actualPath) {
-    final routeSegments = routePath.split('/').where((s) => s.isNotEmpty).toList();
-    final actualSegments = actualPath.split('/').where((s) => s.isNotEmpty).toList();
-    final params = <String, String>{};
-    if (routeSegments.length != actualSegments.length) return params;
-    for (var i = 0; i < routeSegments.length; i++) {
-      final segment = routeSegments[i];
-      if (segment.startsWith(':')) {
-        params[segment.substring(1)] = actualSegments[i];
-      }
-    }
-    return params;
-  }
 }
 
-class _RouteDefinition {
-  _RouteDefinition({
+class _RouteInput {
+  _RouteInput({
     required this.method,
     required this.path,
-    required this.shelfPath,
     required this.handler,
     required this.middleware,
     required this.statusCode,
@@ -223,22 +347,7 @@ class _RouteDefinition {
 
   final String method;
   final String path;
-  final String shelfPath;
   final RouteHandler handler;
   final List<MiddlewareHandler> middleware;
   final int statusCode;
-}
-
-String _normalizePath(String path) {
-  var p = path.trim();
-  if (!p.startsWith('/')) p = '/$p';
-  p = p.replaceAll(RegExp(r'/+'), '/');
-  if (p.length > 1 && p.endsWith('/')) {
-    p = p.substring(0, p.length - 1);
-  }
-  return p;
-}
-
-String _toShelfPath(String path) {
-  return _normalizePath(path).replaceAllMapped(RegExp(r':(\w+)'), (m) => '<${m[1]}>');
 }

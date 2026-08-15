@@ -4,7 +4,6 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../context.dart';
 import '../http/response.dart';
 import '../storage/storage.dart';
 import 'middleware.dart';

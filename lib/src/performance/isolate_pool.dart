@@ -54,13 +54,17 @@ class IsolatePool {
 
   void _pump() {
     while (_queue.isNotEmpty) {
-      final worker = _workers.cast<_IsolateWorker?>().firstWhere(
-            (w) => w != null && !w!.busy,
-            orElse: () => null,
-          );
+      _IsolateWorker? worker;
+      for (var i = 0; i < _workers.length; i++) {
+        final idx = (_roundRobin + i) % _workers.length;
+        if (!_workers[idx].busy) {
+          worker = _workers[idx];
+          _roundRobin = idx + 1;
+          break;
+        }
+      }
       if (worker == null) return;
-      final task = _queue.removeAt(0);
-      worker.execute(task);
+      worker.execute(_queue.removeAt(0));
     }
   }
 

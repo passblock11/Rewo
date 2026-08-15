@@ -1,5 +1,4 @@
 import '../auth/jwt.dart';
-import '../context.dart';
 import '../errors.dart';
 import 'middleware.dart';
 

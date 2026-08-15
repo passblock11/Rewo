@@ -1,9 +1,5 @@
 import 'dart:io';
 
-import '../config.dart';
-import '../container.dart';
-import '../http/route_table.dart';
-
 /// Health check registry for liveness/readiness probes.
 class HealthCheck {
   HealthCheck();

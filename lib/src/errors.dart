@@ -9,21 +9,19 @@ class FrameworkException implements Exception {
 }
 
 class NotFoundException extends FrameworkException {
-  NotFoundException(String message) : super(message, statusCode: 404);
+  NotFoundException(super.message) : super(statusCode: 404);
 }
 
 class BadRequestException extends FrameworkException {
-  BadRequestException(String message) : super(message, statusCode: 400);
+  BadRequestException(super.message) : super(statusCode: 400);
 }
 
 class UnauthorizedException extends FrameworkException {
-  UnauthorizedException([String message = 'Unauthorized'])
-      : super(message, statusCode: 401);
+  UnauthorizedException([super.message = 'Unauthorized']) : super(statusCode: 401);
 }
 
 class ForbiddenException extends FrameworkException {
-  ForbiddenException([String message = 'Forbidden'])
-      : super(message, statusCode: 403);
+  ForbiddenException([super.message = 'Forbidden']) : super(statusCode: 403);
 }
 
 class ValidationException extends FrameworkException {

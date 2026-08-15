@@ -7,8 +7,6 @@ import '../http/route_table.dart';
 import '../middleware/cors_middleware.dart';
 import '../middleware/error_middleware.dart';
 import '../transaction/transaction.dart';
-import '../config/config_validator.dart';
-import '../config/dotenv.dart';
 
 /// Test utility — invoke route handlers without a real HTTP server.
 class TestApp {

@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'config/config_validator.dart';
-import 'config/dotenv.dart';
 import 'config.dart';
 import 'http/server_engine.dart';
 import 'module/rewo_module.dart';

@@ -182,8 +182,8 @@ class HotRestartRunner {
       environment: {...Platform.environment, ...childEnvironment},
       workingDirectory: Directory.current.path,
     );
-    _process!.stdout.transform(SystemEncoding().decoder).listen(stdout.write);
-    _process!.stderr.transform(SystemEncoding().decoder).listen(stderr.write);
+    _process!.stdout.transform(const SystemEncoding().decoder).listen(stdout.write);
+    _process!.stderr.transform(const SystemEncoding().decoder).listen(stderr.write);
   }
 
   Future<void> stop() async {

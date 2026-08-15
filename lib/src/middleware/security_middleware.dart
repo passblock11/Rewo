@@ -1,6 +1,3 @@
-import 'package:shelf/shelf.dart' as shelf;
-
-import '../context.dart';
 import '../errors.dart';
 import '../http/response.dart';
 import 'middleware.dart';

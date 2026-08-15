@@ -1,3 +1,7 @@
+## 1.0.6
+
+- Hot reload now stops the **previous** port before binding a new one (fixes orphan servers when `PORT` changes in `.env`)
+
 ## 1.0.5
 
 - Fix `.env` `PORT` not applied when `bin/server.dart` read env before `DotEnv.load()`

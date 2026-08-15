@@ -84,12 +84,15 @@ class HotRestartRunner {
   Timer? _debounceTimer;
   bool _restarting = false;
   String? _pendingChange;
+  int? _activePort;
 
   Future<void> run() async {
     // ignore: avoid_print
     print('🔥 Hot reload watching: ${watchPaths.join(', ')}');
     // ignore: avoid_print
     print('   Entry: $entrypoint — save a .dart file to restart');
+    await DotEnv.load();
+    _activePort = await _resolvePort();
     await _start();
 
     final watchers = <Watcher>[];
@@ -143,38 +146,41 @@ class HotRestartRunner {
     // ignore: avoid_print
     print('♻️  Hot restarting${changed != null ? ' ($changed changed)' : ''}...');
 
-    final port = await _resolvePort();
+    final portToRelease = _activePort;
     final proc = _process;
     _process = null;
     if (proc != null) {
-      proc.kill(ProcessSignal.sigterm);
-      final code = await proc.exitCode.timeout(
-        const Duration(seconds: 3),
-        onTimeout: () {
-          proc.kill(ProcessSignal.sigkill);
-          return -1;
-        },
-      );
-      if (code == -1) {
-        proc.kill(ProcessSignal.sigkill);
-        await proc.exitCode.timeout(const Duration(seconds: 2), onTimeout: () => -1);
+      await _stopProcess(proc);
+      if (portToRelease != null) {
+        await _waitForPortRelease(portToRelease);
       }
-      await _waitForPortRelease(port);
     }
 
+    await DotEnv.load();
+    _activePort = await _resolvePort();
     await _start();
     _restarting = false;
+  }
+
+  Future<void> _stopProcess(Process proc) async {
+    proc.kill(ProcessSignal.sigterm);
+    final code = await proc.exitCode.timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        proc.kill(ProcessSignal.sigkill);
+        return -1;
+      },
+    );
+    if (code == -1) {
+      proc.kill(ProcessSignal.sigkill);
+      await proc.exitCode.timeout(const Duration(seconds: 2), onTimeout: () => -1);
+    }
   }
 
   Future<int> _resolvePort() async {
     final fromArgs = args.isNotEmpty ? int.tryParse(args.first) : null;
     if (fromArgs != null) return fromArgs;
-    try {
-      await DotEnv.load();
-      return DotEnv.getInt('PORT', fallback: 8080);
-    } on Object {
-      return 8080;
-    }
+    return DotEnv.getInt('PORT', fallback: 8080);
   }
 
   Future<void> _waitForPortRelease(int port) async {
@@ -207,10 +213,14 @@ class HotRestartRunner {
     _debounceTimer?.cancel();
     await _watchSub?.cancel();
     final proc = _process;
+    final portToRelease = _activePort;
     _process = null;
+    _activePort = null;
     if (proc != null) {
-      proc.kill(ProcessSignal.sigint);
-      await proc.exitCode.timeout(const Duration(seconds: 2), onTimeout: () => -1);
+      await _stopProcess(proc);
+      if (portToRelease != null) {
+        await _waitForPortRelease(portToRelease);
+      }
     }
   }
 }

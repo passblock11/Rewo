@@ -15,7 +15,7 @@ dart pub add rewo
 ```yaml
 # pubspec.yaml
 dependencies:
-  rewo: ^1.0.0
+  rewo: ^1.0.2
 ```
 
 ### CLI + new project (recommended)
@@ -34,17 +34,28 @@ cp .env.example .env
 
 ## 2. Run your API
 
+### Development (hot reload)
+
 ```bash
-# Development — hot reload on save
 dart run bin/dev.dart
 # or
 dart run bin/server.dart --dev
-
-# Production
-dart run bin/server.dart
 ```
 
-Open **http://localhost:8080** — try `/health`, `/api/items`.
+Open **http://localhost:8080** — try `/health`, `/api/items`. Edits in `lib/` restart the server automatically.
+
+### Production
+
+```bash
+# Run with Dart
+dart run bin/server.dart
+
+# Compile and run native binary (recommended for deploy)
+dart compile exe bin/server.dart -o server
+./server
+```
+
+Copy `.env` next to the `server` binary, or set environment variables on the host.
 
 ---
 

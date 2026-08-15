@@ -43,9 +43,25 @@ rewo create my_api
 cd my_api
 dart pub get
 cp .env.example .env
-dart run bin/dev.dart        # hot reload
+```
+
+### Development (hot reload)
+
+```bash
+dart run bin/dev.dart
 # or
-dart run bin/server.dart     # production run
+dart run bin/server.dart --dev
+```
+
+### Production
+
+```bash
+# Run with Dart
+dart run bin/server.dart
+
+# Or compile and run a native binary (deploy)
+dart compile exe bin/server.dart -o server
+./server
 ```
 
 Your project layout:
@@ -132,14 +148,43 @@ STORAGE_PATH=./storage
 
 ---
 
+## Run the server
+
+### Development (hot reload)
+
+```bash
+dart run bin/dev.dart
+# or
+dart run bin/server.dart --dev
+```
+
+Saves in `lib/` restart the server automatically. Use a custom port: `dart run bin/dev.dart 3000`.
+
+### Production
+
+```bash
+# Run with Dart
+dart run bin/server.dart
+
+# Compile to a native binary (recommended for deploy)
+dart compile exe bin/server.dart -o server
+./server
+```
+
+Place `.env` next to the binary, or set `PORT`, `JWT_SECRET`, etc. in your environment.
+
+---
+
 ## Commands
 
 ```bash
-rewo create my_api          # scaffold project
-dart run bin/dev.dart             # hot-reload dev
-dart run bin/server.dart          # run server
-dart test                         # tests
-dart compile exe bin/server.dart -o server
+rewo create my_api                        # scaffold project
+dart run bin/dev.dart                     # dev — hot reload
+dart run bin/server.dart --dev            # same as dev
+dart run bin/server.dart                  # production run
+dart compile exe bin/server.dart -o server   # build binary
+./server                                  # run compiled binary
+dart test                                 # tests
 ```
 
 ---

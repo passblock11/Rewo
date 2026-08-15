@@ -7,10 +7,28 @@ A [Rewo](https://pub.dev/packages/rewo) API project by [Avanti Inc.](https://ava
 ```bash
 dart pub get
 cp .env.example .env
-dart run bin/server.dart
 ```
 
 Server runs at **http://localhost:8080**
+
+### Development (hot reload)
+
+```bash
+dart run bin/dev.dart
+# or
+dart run bin/server.dart --dev
+```
+
+### Production
+
+```bash
+# Run with Dart
+dart run bin/server.dart
+
+# Compile and run native binary (deploy)
+dart compile exe bin/server.dart -o server
+./server
+```
 
 ## Add a new API module
 
@@ -20,12 +38,14 @@ Server runs at **http://localhost:8080**
 
 ## Commands
 
-```bash
-dart run bin/server.dart              # run server
-dart run bin/dev.dart                 # hot reload dev server
-dart test                             # run tests
-dart compile exe bin/server.dart -o server   # production binary
-```
+| Command | Use |
+|---------|-----|
+| `dart run bin/dev.dart` | Dev server with hot reload |
+| `dart run bin/server.dart --dev` | Same as above |
+| `dart run bin/server.dart` | Production (no hot reload) |
+| `dart compile exe bin/server.dart -o server` | Build production binary |
+| `./server` | Run compiled binary |
+| `dart test` | Run tests |
 
 ## Project layout
 

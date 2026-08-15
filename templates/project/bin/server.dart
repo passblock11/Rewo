@@ -18,12 +18,13 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> _startServer(List<String> args) async {
-  final port = int.tryParse(args.firstOrNull ?? '') ??
-      DotEnv.getInt('PORT', fallback: 8080);
+  await DotEnv.load();
+  final cliPort = DevServer.cliPort(args);
+  final port = DevServer.resolvedPort(args);
 
   // ignore: avoid_print
   print('Starting {{title}} on http://localhost:$port');
-  await App.run(port: port);
+  await App.run(port: cliPort);
 
   // Keep the process alive (server + signal handlers run in background).
   await Completer<void>().future;

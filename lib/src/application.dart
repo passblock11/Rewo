@@ -223,7 +223,11 @@ class Rewo {
       }
     }
 
-    _shelfServer = await shelf_io.serve(_router.call, config.host, config.port);
+    _shelfServer = await _bindServer(() => shelf_io.serve(
+          _router.call,
+          config.host,
+          config.port,
+        ));
     tuneHttpServer(_shelfServer!, config.performance);
     _printStarted('shelf');
   }
@@ -290,6 +294,29 @@ class Rewo {
       );
       _routeTable.add(compiled);
     }
+  }
+
+  Future<HttpServer> _bindServer(Future<HttpServer> Function() bind) async {
+    try {
+      return await bind();
+    } on SocketException catch (e) {
+      if (_isAddressInUse(e)) {
+        stderr.writeln('''
+❌ Port ${config.port} is already in use.
+
+  Stop the other server (Ctrl+C in its terminal), or free the port:
+    lsof -ti:${config.port} | xargs kill
+
+  Or set a different port in .env (PORT=3000) or: rewo run 3000
+''');
+      }
+      rethrow;
+    }
+  }
+
+  bool _isAddressInUse(SocketException e) {
+    final code = e.osError?.errorCode;
+    return code == 48 || code == 98 || e.message.contains('Address already in use');
   }
 
   Future<void> close() async {

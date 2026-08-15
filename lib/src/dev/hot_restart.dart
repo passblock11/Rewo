@@ -21,6 +21,17 @@ const rewoHotChildEnv = 'REWO_HOT_CHILD';
 /// }
 /// ```
 class DevServer {
+  /// CLI port override from args (e.g. `rewo run --dev 3000` → `3000`).
+  static int? cliPort(List<String> args) {
+    if (args.isEmpty) return null;
+    return int.tryParse(args.first);
+  }
+
+  /// Port from CLI arg or `.env` (`PORT`). Call [DotEnv.load] first.
+  static int resolvedPort(List<String> args, {int fallback = 8080}) {
+    return cliPort(args) ?? DotEnv.getInt('PORT', fallback: fallback);
+  }
+
   static Future<void> run({
     required List<String> args,
     required String entrypoint,
@@ -136,14 +147,18 @@ class HotRestartRunner {
     final proc = _process;
     _process = null;
     if (proc != null) {
-      proc.kill(ProcessSignal.sigint);
-      await proc.exitCode.timeout(
-        const Duration(seconds: 8),
+      proc.kill(ProcessSignal.sigterm);
+      final code = await proc.exitCode.timeout(
+        const Duration(seconds: 3),
         onTimeout: () {
           proc.kill(ProcessSignal.sigkill);
           return -1;
         },
       );
+      if (code == -1) {
+        proc.kill(ProcessSignal.sigkill);
+        await proc.exitCode.timeout(const Duration(seconds: 2), onTimeout: () => -1);
+      }
       await _waitForPortRelease(port);
     }
 
@@ -163,7 +178,7 @@ class HotRestartRunner {
   }
 
   Future<void> _waitForPortRelease(int port) async {
-    for (var attempt = 0; attempt < 30; attempt++) {
+    for (var attempt = 0; attempt < 100; attempt++) {
       try {
         final socket =
             await ServerSocket.bind(InternetAddress.anyIPv4, port);
@@ -173,6 +188,8 @@ class HotRestartRunner {
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     }
+    // ignore: avoid_print
+    print('⚠️  Port $port still in use — starting anyway (may fail)');
   }
 
   Future<void> _start() async {

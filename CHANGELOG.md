@@ -1,3 +1,10 @@
+## 1.0.5
+
+- Fix `.env` `PORT` not applied when `bin/server.dart` read env before `DotEnv.load()`
+- Clearer "port already in use" error with fix instructions
+- Improve hot-reload port release between restarts
+- `DevServer.cliPort()` / `DevServer.resolvedPort()` helpers
+
 ## 1.0.4
 
 - Developer-friendly error responses in dev mode (file, line, type, hint, stack)

@@ -20,6 +20,7 @@ class DotEnv {
       return;
     }
 
+    _values.clear();
     final lines = await file.readAsLines();
     for (final line in lines) {
       final trimmed = line.trim();

@@ -6,6 +6,7 @@ import 'module/rewo_module.dart';
 import 'application.dart';
 import 'auth/jwt.dart';
 import 'cache/cache.dart';
+import 'db/postgres_pool.dart';
 import 'events/event_bus.dart';
 import 'queue/job_queue.dart';
 import 'storage/storage.dart';
@@ -56,6 +57,22 @@ class RewoBootstrap {
     app.singleton(EventBus());
     app.singleton(TransactionManager());
 
+    if (values.databaseUrl != null) {
+      final pool = PostgresPool.fromUrl(values.databaseUrl!);
+      await pool.open();
+      app.singleton<PostgresPool>(pool);
+      app.health.register('database', () async {
+        try {
+          await pool.query('SELECT 1');
+          return true;
+        } on Object {
+          return false;
+        }
+      });
+      // ignore: avoid_print
+      print('📦 Database connected');
+    }
+
     app.get(
         '/',
         (_) async => {
@@ -102,6 +119,9 @@ class RewoBootstrap {
       if (!isHotReload) {
         // ignore: avoid_print
         print('Shutting down...');
+      }
+      if (app.container.isRegistered<PostgresPool>()) {
+        await app.container.resolve<PostgresPool>().close();
       }
       await app.close();
       exit(0);

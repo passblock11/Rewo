@@ -1,3 +1,8 @@
+## 1.0.7
+
+- Auto-connect `PostgresPool` when `DATABASE_URL` is set in `.env`
+- Database health check on `/ready` and pool cleanup on shutdown
+
 ## 1.0.6
 
 - Hot reload now stops the **previous** port before binding a new one (fixes orphan servers when `PORT` changes in `.env`)

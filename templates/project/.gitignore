@@ -1,5 +1,5 @@
 .dart_tool/
 .packages
 build/
-storage/
+/storage/
 .env

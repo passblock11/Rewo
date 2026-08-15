@@ -1,3 +1,8 @@
+## 1.0.2
+
+- Fix `.gitignore` / `.pubignore` excluding `lib/src/storage/` from repo and pub publish
+- Include `lib/src/storage/storage.dart` in published package (fixes pub.dev dartdoc analysis)
+
 ## 1.0.1
 
 - Fix project template `pubspec.yaml` YAML syntax for `rewo create`

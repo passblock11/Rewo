@@ -29,6 +29,7 @@ class AppConfigValues {
     required this.environment,
     required this.jwtSecret,
     this.databaseUrl,
+    this.directUrl,
     this.storagePath = './storage',
     this.logRequests = true,
     this.rateLimit = 100,
@@ -42,6 +43,7 @@ class AppConfigValues {
       environment: DotEnv.get('ENV', fallback: 'development'),
       jwtSecret: DotEnv.get('JWT_SECRET', fallback: 'dev-secret-change-me'),
       databaseUrl: DotEnv.get('DATABASE_URL').isEmpty ? null : DotEnv.get('DATABASE_URL'),
+      directUrl: DotEnv.get('DIRECT_URL').isEmpty ? null : DotEnv.get('DIRECT_URL'),
       storagePath: DotEnv.get('STORAGE_PATH', fallback: './storage'),
       logRequests: DotEnv.getBool('LOG_REQUESTS', fallback: true),
       rateLimit: DotEnv.getInt('RATE_LIMIT', fallback: 100),
@@ -54,6 +56,7 @@ class AppConfigValues {
   final String environment;
   final String jwtSecret;
   final String? databaseUrl;
+  final String? directUrl;
   final String storagePath;
   final bool logRequests;
   final int rateLimit;

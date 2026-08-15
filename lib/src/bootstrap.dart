@@ -6,7 +6,9 @@ import 'module/rewo_module.dart';
 import 'application.dart';
 import 'auth/jwt.dart';
 import 'cache/cache.dart';
-import 'db/postgres_pool.dart';
+import 'db/database_bootstrap.dart';
+import 'db/database_config.dart';
+import 'db/database_plugin.dart';
 import 'events/event_bus.dart';
 import 'queue/job_queue.dart';
 import 'storage/storage.dart';
@@ -15,7 +17,12 @@ import 'dev/hot_restart.dart' show rewoHotChildEnv;
 
 /// Bootstrap helper for application projects (like Express app setup).
 class RewoBootstrap {
+  static DatabaseBootstrap? _databaseBootstrap;
+
   /// Configure shared services, register [modules], and start listening.
+  ///
+  /// [configureDatabase] — register any driver or ORM (Drift, Stormberry, mongo_dart, etc.)
+  /// on [Rewo.container]. Built-in plugins handle Postgres automatically.
   static Future<Rewo> start({
     required List<RewoModule> modules,
     String serviceName = 'Rewo API',
@@ -24,6 +31,8 @@ class RewoBootstrap {
     ServerEngine? engine,
     String envFile = '.env',
     bool enableHeartbeat = true,
+    DatabaseConfigurer? configureDatabase,
+    List<DatabasePlugin>? databasePlugins,
   }) async {
     await DotEnv.load(envFile);
     final values = AppConfigValues.fromEnv();
@@ -57,21 +66,12 @@ class RewoBootstrap {
     app.singleton(EventBus());
     app.singleton(TransactionManager());
 
-    if (values.databaseUrl != null) {
-      final pool = PostgresPool.fromUrl(values.databaseUrl!);
-      await pool.open();
-      app.singleton<PostgresPool>(pool);
-      app.health.register('database', () async {
-        try {
-          await pool.query('SELECT 1');
-          return true;
-        } on Object {
-          return false;
-        }
-      });
-      // ignore: avoid_print
-      print('📦 Database connected');
-    }
+    _databaseBootstrap = DatabaseBootstrap(plugins: databasePlugins);
+    await _databaseBootstrap!.connect(
+      app,
+      values,
+      configure: configureDatabase,
+    );
 
     app.get(
         '/',
@@ -101,6 +101,8 @@ class RewoBootstrap {
     int? port,
     ServerEngine? engine,
     String envFile = '.env',
+    DatabaseConfigurer? configureDatabase,
+    List<DatabasePlugin>? databasePlugins,
   }) async {
     final app = await start(
       modules: modules,
@@ -109,6 +111,8 @@ class RewoBootstrap {
       port: port,
       engine: engine,
       envFile: envFile,
+      configureDatabase: configureDatabase,
+      databasePlugins: databasePlugins,
     );
 
     var shuttingDown = false;
@@ -120,9 +124,8 @@ class RewoBootstrap {
         // ignore: avoid_print
         print('Shutting down...');
       }
-      if (app.container.isRegistered<PostgresPool>()) {
-        await app.container.resolve<PostgresPool>().close();
-      }
+      await _databaseBootstrap?.disconnect(app);
+      _databaseBootstrap = null;
       await app.close();
       exit(0);
     }

@@ -1,3 +1,9 @@
+## 1.0.9
+
+- Pluggable database layer: any DB via `configureDatabase` or custom `DatabasePlugin`
+- Built-in `PostgresDatabasePlugin`; env supports `MYSQL_URL`, `MONGODB_URI`, `SQLITE_PATH`
+- See [DATABASE.md](DATABASE.md) for ORM integration (Drift, Stormberry, mongo_dart, etc.)
+
 ## 1.0.8
 
 - Add `put`, `patch`, and `delete` route helpers on `Rewo`

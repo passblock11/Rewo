@@ -220,7 +220,11 @@ dart test                                 # tests
 
 ---
 
-## Documentation
+## Database & ORM
+
+See [DATABASE.md](DATABASE.md) — Postgres built-in, any DB/ORM via `configureDatabase`.
+
+---
 
 - [Getting Started](https://github.com/passblock11/Rewo/blob/main/GETTING_STARTED.md)
 - [Performance](https://github.com/passblock11/Rewo/blob/main/PERFORMANCE.md)

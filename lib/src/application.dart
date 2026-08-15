@@ -131,7 +131,9 @@ class Rewo {
   void use(Middleware middleware) => _globalMiddleware.add(middleware.handler);
 
   void useDefaults() {
-    use(ErrorMiddleware());
+    use(ErrorMiddleware(
+      development: developmentErrorDetails(isProduction: config.isProduction),
+    ));
     use(RequestIdMiddleware());
     use(SecurityHeadersMiddleware());
     use(RateLimitMiddleware(maxRequests: config.rateLimit));

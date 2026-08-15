@@ -1,3 +1,8 @@
+## 1.0.4
+
+- Developer-friendly error responses in dev mode (file, line, type, hint, stack)
+- Clearer console output for unhandled route errors
+
 ## 1.0.3
 
 - `rewo run` runs the current project's `bin/server.dart` (production)

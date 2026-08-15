@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import '../application.dart';
 import '../config.dart';
 import '../context.dart';
 import '../container.dart';
 import '../events/event_bus.dart';
+import '../http/response.dart';
 import '../http/route_table.dart';
 import '../middleware/cors_middleware.dart';
 import '../middleware/error_middleware.dart';
@@ -19,7 +22,11 @@ class TestApp {
     AppConfig? config,
   }) async {
     final app = Rewo(config: config);
-    app.use(ErrorMiddleware());
+    app.use(ErrorMiddleware(
+      development: developmentErrorDetails(
+        isProduction: config?.isProduction ?? false,
+      ),
+    ));
     app.use(CorsMiddleware());
     configure(app);
     return TestApp(app);
@@ -46,7 +53,17 @@ class TestApp {
       container: _app.container,
     );
 
-    return route.handler(ctx);
+    final response = await route.pipeline.run(ctx, (c) async {
+      final result = await route.handler(c);
+      return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+    });
+
+    final contentType = response.headers['content-type']?.toString() ?? '';
+    final bodyText = await response.readAsString();
+    if (contentType.contains('application/json') && bodyText.isNotEmpty) {
+      return jsonDecode(bodyText);
+    }
+    return bodyText;
   }
 
   Rewo get app => _app;

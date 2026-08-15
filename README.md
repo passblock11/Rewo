@@ -17,7 +17,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rewo: ^1.0.3
+  rewo: ^1.0.4
 ```
 
 Or scaffold a full project with the CLI:

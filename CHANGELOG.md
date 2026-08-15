@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Fix project template `pubspec.yaml` YAML syntax for `rewo create`
+- Fix analyzer warnings for pub.dev validation
+
 ## 1.0.0
 
 - First pub.dev release of **Rewo** (`rewo`)

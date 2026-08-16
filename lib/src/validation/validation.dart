@@ -54,7 +54,36 @@ class Validator {
   }
 
   static bool _isEmail(String value) {
-    return RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value);
+    if (value.isEmpty || value.length > 254) return false;
+
+    // Reject emoji, unicode homoglyphs, and control characters.
+    if (!RegExp(r'^[\x21-\x7E]+$').hasMatch(value)) return false;
+
+    final at = value.indexOf('@');
+    if (at <= 0 || at != value.lastIndexOf('@')) return false;
+
+    final local = value.substring(0, at);
+    final domain = value.substring(at + 1);
+
+    if (local.length > 64 || domain.isEmpty || domain.length > 253) return false;
+    if (local.startsWith('.') ||
+        local.endsWith('.') ||
+        local.contains('..')) {
+      return false;
+    }
+    if (domain.startsWith('.') ||
+        domain.endsWith('.') ||
+        domain.startsWith('-') ||
+        domain.endsWith('-') ||
+        domain.contains('..')) {
+      return false;
+    }
+
+    const localPart = r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$";
+    const domainPart =
+        r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$';
+
+    return RegExp(localPart).hasMatch(local) && RegExp(domainPart).hasMatch(domain);
   }
 }
 

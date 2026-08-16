@@ -1,3 +1,7 @@
+## 1.0.11
+
+- Stricter `ValidateRule.email()` — rejects emoji, unicode, trailing dots, and malformed domains
+
 ## 1.0.10
 
 - Move codegen deps (`build`, `source_gen`, `analyzer`) to dev_dependencies so apps can `dart compile exe` for production deploys

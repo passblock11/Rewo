@@ -3,7 +3,7 @@ description: >-
   Rewo — a modular Dart backend framework. REST APIs, DI, JWT auth,
   OpenAPI, hot-reload dev, and CLI project scaffolding. Spring-inspired,
   Express-simple.
-version: 1.0.10
+version: 1.0.11
 homepage: https://avantiinc.xyz
 repository: https://github.com/passblock11/Rewo
 issue_tracker: https://github.com/passblock11/Rewo/issues

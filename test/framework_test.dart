@@ -41,6 +41,43 @@ void main() {
         returnsNormally,
       );
     });
+
+    test('rejects emoji and invalid email formats', () {
+      const rule = ValidateRule.email();
+      for (final email in [
+        'tejasborate2@gmail.com😁',
+        'you@example.',
+        'invalid',
+        '@domain.com',
+        'user@',
+        'user@domain',
+        'user..name@domain.com',
+        'user@.com',
+        'user@domain.',
+        'user name@domain.com',
+      ]) {
+        expect(
+          () => Validator.validateOrThrow({'email': email}, {'email': rule}),
+          throwsA(isA<ValidationException>()),
+          reason: 'should reject $email',
+        );
+      }
+    });
+
+    test('accepts common valid emails', () {
+      const rule = ValidateRule.email();
+      for (final email in [
+        'user@example.com',
+        'user.name+tag@example.co.uk',
+        'user_name@mail.example.org',
+      ]) {
+        expect(
+          () => Validator.validateOrThrow({'email': email}, {'email': rule}),
+          returnsNormally,
+          reason: 'should accept $email',
+        );
+      }
+    });
   });
 
   group('EventBus', () {

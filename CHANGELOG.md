@@ -1,3 +1,10 @@
+## 1.0.14
+
+- First-class WebSocket support: `app.webSocket(path, handler, {middleware})`
+- JWT auth on WebSocket handshake via `Authorization: Bearer` or `?token=` query param
+- Works on both `ServerEngine.shelf` and `ServerEngine.native` (handshake intercepted at `HttpServer` level)
+- App DI (`ctx.resolve<T>()`) available in WebSocket handlers; graceful shutdown closes open sockets
+
 ## 1.0.12
 
 - Khadem-style README with 20 beginner-friendly code examples

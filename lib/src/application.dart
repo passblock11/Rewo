@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
@@ -14,6 +15,8 @@ import 'http/native_server.dart';
 import 'http/response.dart';
 import 'http/route_table.dart';
 import 'http/server_engine.dart';
+import 'http/websocket.dart';
+import 'http/websocket_route_table.dart';
 import 'middleware/cors_middleware.dart';
 import 'middleware/error_middleware.dart';
 import 'middleware/logging_middleware.dart';
@@ -102,8 +105,11 @@ class Rewo {
 
   final Router _router = Router();
   final RouteTable _routeTable = RouteTable();
+  final WebSocketRouteTable _webSocketRouteTable = WebSocketRouteTable();
+  final WebSocketConnectionTracker _webSocketTracker = WebSocketConnectionTracker();
   final List<MiddlewareHandler> _globalMiddleware = [];
   final List<_RouteInput> _routes = [];
+  final List<_WebSocketRouteInput> _webSocketRoutes = [];
   IsolatePool? _isolatePool;
 
   HttpServer? _shelfServer;
@@ -115,6 +121,7 @@ class Rewo {
   final OpenApiGenerator openApi = OpenApiGenerator();
 
   RouteTable get routeTable => _routeTable;
+  WebSocketRouteTable get webSocketRouteTable => _webSocketRouteTable;
 
   void compileRoutesForTest() => _compileRoutes();
 
@@ -190,6 +197,22 @@ class Rewo {
     _addRoute('DELETE', path, handler, middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a WebSocket endpoint (native + shelf engines).
+  void webSocket(
+    String path,
+    WebSocketConnectHandler onConnect, {
+    List<MiddlewareHandler>? middleware,
+  }) {
+    _webSocketRoutes.add(_WebSocketRouteInput(
+      path: normalizePath(path),
+      handler: (socket, ctx) {
+        _webSocketTracker.track(socket);
+        onConnect(socket, ctx);
+      },
+      middleware: middleware ?? [],
+    ));
+  }
+
   void schedule(int intervalSeconds, FutureOr<void> Function() task) {
     scheduler.cronSeconds(intervalSeconds, task);
   }
@@ -238,11 +261,40 @@ class Rewo {
       }
     }
 
-    _shelfServer = await _bindServer(() => shelf_io.serve(
-          _router.call,
-          config.host,
-          config.port,
-        ));
+    _shelfServer = await _bindServer(() async {
+      final server = await HttpServer.bind(
+        config.host,
+        config.port,
+        shared: true,
+      );
+      server.listen((request) async {
+        try {
+          if (WebSocketTransformer.isUpgradeRequest(request)) {
+            final wsRoute = _webSocketRouteTable.match(request.uri.path);
+            if (wsRoute != null) {
+              await handleWebSocketUpgrade(
+                request: request,
+                route: wsRoute,
+                container: container,
+              );
+              return;
+            }
+          }
+          await shelf_io.handleRequest(request, _router.call);
+        } catch (e, st) {
+          // ignore: avoid_print
+          print('Shelf server error: $e\n$st');
+          try {
+            request.response.statusCode = 500;
+            request.response.write(jsonEncode({'error': 'Internal server error'}));
+            await request.response.close();
+          } on Object {
+            // Response may already be committed.
+          }
+        }
+      });
+      return server;
+    });
     tuneHttpServer(_shelfServer!, config.performance);
     _printStarted('shelf');
   }
@@ -251,6 +303,7 @@ class Rewo {
     _nativeServer = NativeHttpServer(
       config: config,
       routeTable: _routeTable,
+      webSocketRouteTable: _webSocketRouteTable,
       container: container,
     );
     await _nativeServer!.listen();
@@ -295,6 +348,7 @@ class Rewo {
 
   void _compileRoutes() {
     _routeTable.clear();
+    _webSocketRouteTable.clear();
     for (final route in _routes) {
       final compiled = CompiledRoute(
         method: route.method,
@@ -308,6 +362,18 @@ class Rewo {
         ]),
       );
       _routeTable.add(compiled);
+    }
+    for (final route in _webSocketRoutes) {
+      final compiled = CompiledWebSocketRoute(
+        path: route.path,
+        handler: route.handler,
+        middleware: route.middleware,
+        pipeline: MiddlewarePipeline([
+          ..._globalMiddleware,
+          ...route.middleware,
+        ]),
+      );
+      _webSocketRouteTable.add(compiled);
     }
   }
 
@@ -336,6 +402,7 @@ class Rewo {
 
   Future<void> close() async {
     scheduler.stopAll();
+    await _webSocketTracker.closeAll();
     await _isolatePool?.close();
     await _shelfServer?.close(force: true);
     await _nativeServer?.close();
@@ -393,4 +460,16 @@ class _RouteInput {
   final RouteHandler handler;
   final List<MiddlewareHandler> middleware;
   final int statusCode;
+}
+
+class _WebSocketRouteInput {
+  _WebSocketRouteInput({
+    required this.path,
+    required this.handler,
+    required this.middleware,
+  });
+
+  final String path;
+  final WebSocketConnectHandler handler;
+  final List<MiddlewareHandler> middleware;
 }

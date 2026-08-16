@@ -89,7 +89,7 @@ dart pub global activate rewo
 ```yaml
 # pubspec.yaml
 dependencies:
-  rewo: ^1.0.11
+  rewo: ^1.0.14
 ```
 
 Then run:

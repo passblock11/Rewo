@@ -12,10 +12,16 @@ class JwtMiddleware extends Middleware {
   @override
   MiddlewareHandler get handler => (ctx, next) async {
         final auth = ctx.headers['authorization'];
-        if (auth == null || !auth.startsWith('Bearer ')) {
+        String? token;
+        if (auth != null && auth.startsWith('Bearer ')) {
+          token = auth.substring(7);
+        } else {
+          token = ctx.query('token');
+        }
+        if (token == null || token.isEmpty) {
           throw UnauthorizedException('Missing bearer token');
         }
-        final payload = jwt.verify(auth.substring(7));
+        final payload = jwt.verify(token);
         final userId = payload['sub'] as String? ?? payload['userId'] as String?;
         final userRoles = (payload['roles'] as List?)?.cast<String>() ?? [];
         if (userId == null) throw UnauthorizedException('Invalid JWT payload');

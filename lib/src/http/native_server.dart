@@ -10,17 +10,21 @@ import '../errors.dart';
 import '../performance/http_tuning.dart';
 import 'response.dart';
 import 'route_table.dart';
+import 'websocket.dart';
+import 'websocket_route_table.dart';
 
 /// High-performance HTTP server using dart:io directly (bypasses Shelf).
 class NativeHttpServer {
   NativeHttpServer({
     required this.config,
     required this.routeTable,
+    required this.webSocketRouteTable,
     required this.container,
   });
 
   final AppConfig config;
   final RouteTable routeTable;
+  final WebSocketRouteTable webSocketRouteTable;
   final ServiceContainer container;
 
   HttpServer? _server;
@@ -44,6 +48,18 @@ class NativeHttpServer {
   }
 
   Future<void> _handle(HttpRequest request) async {
+    if (WebSocketTransformer.isUpgradeRequest(request)) {
+      final wsRoute = webSocketRouteTable.match(request.uri.path);
+      if (wsRoute != null) {
+        final handled = await handleWebSocketUpgrade(
+          request: request,
+          route: wsRoute,
+          container: container,
+        );
+        if (handled) return;
+      }
+    }
+
     final route = routeTable.match(request.method, request.uri.path);
     if (route == null) {
       request.response.statusCode = 404;

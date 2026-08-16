@@ -27,6 +27,7 @@ export 'src/http/response.dart';
 export 'src/http/route_table.dart';
 export 'src/http/server_engine.dart';
 export 'src/http/websocket.dart';
+export 'src/http/websocket_route_table.dart';
 export 'src/logging/logger.dart';
 export 'src/middleware/auth_middleware.dart';
 export 'src/middleware/cors_middleware.dart';

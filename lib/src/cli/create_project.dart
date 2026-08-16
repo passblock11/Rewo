@@ -22,7 +22,7 @@ class CreateProjectCommand {
   final String frameworkVersion;
 
   /// Keep in sync with [pubspec.yaml] version when publishing.
-  static const latestPublishedVersion = '1.0.9';
+  static const latestPublishedVersion = '1.0.14';
 
   String get snakeName => _toSnakeCase(projectName);
   String get titleName => _toTitleCase(projectName);

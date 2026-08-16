@@ -10,7 +10,7 @@ targets:
 
 builders:
   route:
-    import: "package:rewo/src/codegen/builder.dart"
+    import: "tool/codegen/builder.dart"
     builder_factories: ["routeBuilder"]
     build_extensions: {".dart": [".routes.g.dart"]}
     auto_apply: dependents

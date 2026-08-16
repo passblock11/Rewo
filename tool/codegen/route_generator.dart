@@ -2,9 +2,8 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
+import 'package:rewo/src/annotations.dart';
 import 'package:source_gen/source_gen.dart';
-
-import '../annotations.dart';
 
 const _get = TypeChecker.fromRuntime(Get);
 const _post = TypeChecker.fromRuntime(Post);

@@ -1,3 +1,8 @@
+## 1.0.12
+
+- Khadem-style README with 20 beginner-friendly code examples
+- Move route codegen to `tool/codegen/` so the package can publish to pub.dev while keeping AOT compile support
+
 ## 1.0.11
 
 - Stricter `ValidateRule.email()` — rejects emoji, unicode, trailing dots, and malformed domains

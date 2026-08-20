@@ -1,6 +1,6 @@
 # {{title}}
 
-A [Rewo](https://pub.dev/packages/rewo) API project by [Avanti Inc.](https://avantiinc.xyz)
+A [Rewo](https://pub.dev/packages/rewo) API project — see the [framework repo](https://github.com/passblock11/Rewo)
 
 ## Quick start
 

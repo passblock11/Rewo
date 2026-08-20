@@ -14,7 +14,8 @@ class Logger {
       _log('WARN', message, data);
 
   void error(String message, {Map<String, dynamic>? data, Object? error}) =>
-      _log('ERROR', message, {...?data, if (error != null) 'error': error.toString()});
+      _log('ERROR', message,
+          {...?data, if (error != null) 'error': error.toString()});
 
   void _log(String level, String message, Map<String, dynamic>? data) {
     final entry = {

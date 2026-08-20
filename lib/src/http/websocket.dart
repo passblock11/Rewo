@@ -8,7 +8,8 @@ import '../context.dart';
 import '../errors.dart';
 import 'websocket_route_table.dart';
 
-typedef WebSocketConnectHandler = void Function(WebSocket socket, RequestContext ctx);
+typedef WebSocketConnectHandler = void Function(
+    WebSocket socket, RequestContext ctx);
 
 /// Tracks open WebSocket connections for graceful shutdown.
 class WebSocketConnectionTracker {
@@ -67,7 +68,8 @@ Future<WebSocketAuthResult> authenticateWebSocketUpgrade({
 }) async {
   if (!WebSocketTransformer.isUpgradeRequest(request)) {
     return WebSocketAuthResult.failure(
-      shelf.Response(400, body: jsonEncode({'error': 'Not a WebSocket upgrade'})),
+      shelf.Response(400,
+          body: jsonEncode({'error': 'Not a WebSocket upgrade'})),
     );
   }
 
@@ -154,6 +156,7 @@ shelf.Response _unauthorizedResponse() {
 
 Map<String, String> _headers(HttpRequest request) {
   final map = <String, String>{};
-  request.headers.forEach((k, values) => map[k.toLowerCase()] = values.join(','));
+  request.headers
+      .forEach((k, values) => map[k.toLowerCase()] = values.join(','));
   return map;
 }

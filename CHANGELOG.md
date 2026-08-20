@@ -1,3 +1,11 @@
+## 1.0.15
+
+- Improve pub.dev score to **160/160** pub points
+- Shorten `pubspec.yaml` description; set `homepage` to GitHub repo
+- Document public API (demo modules, `Rewo`, `RestController`, `RouteRegistrar`)
+- Fix `unawaited_futures` lint in `AuthMiddleware`
+- Run `dart format` across the repo; update README, GETTING_STARTED, PUBLISHING, and example docs
+
 ## 1.0.14
 
 - First-class WebSocket support: `app.webSocket(path, handler, {middleware})`

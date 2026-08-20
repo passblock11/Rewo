@@ -55,7 +55,8 @@ class TestApp {
 
     final response = await route.pipeline.run(ctx, (c) async {
       final result = await route.handler(c);
-      return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+      return AppResponse.fromHandlerResult(result,
+          statusCode: route.statusCode);
     });
 
     final contentType = response.headers['content-type']?.toString() ?? '';

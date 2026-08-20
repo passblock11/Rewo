@@ -44,7 +44,6 @@ class DatabaseBootstrap {
     if (configure != null) {
       await configure(app, values);
     }
-
   }
 
   Future<void> disconnect(Rewo app) async {

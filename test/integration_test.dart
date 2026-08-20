@@ -63,12 +63,14 @@ void main() {
   });
 
   test('admin stats requires auth', () async {
-    final res = await client.get(Uri.parse('http://localhost:$port/api/users/admin/stats'));
+    final res = await client
+        .get(Uri.parse('http://localhost:$port/api/users/admin/stats'));
     expect(res.statusCode, 401);
   });
 
   test('generated routes respond', () async {
-    final res = await client.get(Uri.parse('http://localhost:$port/api/v2/users'));
+    final res =
+        await client.get(Uri.parse('http://localhost:$port/api/v2/users'));
     expect(res.statusCode, 200);
     expect(jsonDecode(res.body), {'users': []});
   });

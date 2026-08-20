@@ -39,13 +39,13 @@ class DatabaseConfig {
       return DatabaseConfig(url: null, kind: DatabaseKind.unknown);
     }
 
-    final normalized = source == 'SQLITE_PATH' && !url.contains('://')
-        ? 'sqlite://$url'
-        : url;
+    final normalized =
+        source == 'SQLITE_PATH' && !url.contains('://') ? 'sqlite://$url' : url;
 
     return DatabaseConfig(
       url: normalized,
-      directUrl: DotEnv.get('DIRECT_URL').isEmpty ? null : DotEnv.get('DIRECT_URL'),
+      directUrl:
+          DotEnv.get('DIRECT_URL').isEmpty ? null : DotEnv.get('DIRECT_URL'),
       kind: DatabaseKind.fromUrl(normalized),
       sourceVariable: source ?? 'DATABASE_URL',
     );
@@ -74,8 +74,11 @@ class DatabaseConfig {
     if (directUrl != null && directUrl!.isNotEmpty) return directUrl;
     if (url == null) return null;
     final uri = Uri.parse(url!);
-    final params = Map<String, String>.from(uri.queryParameters)..remove('pgbouncer');
-    return uri.replace(queryParameters: params.isEmpty ? null : params).toString();
+    final params = Map<String, String>.from(uri.queryParameters)
+      ..remove('pgbouncer');
+    return uri
+        .replace(queryParameters: params.isEmpty ? null : params)
+        .toString();
   }
 }
 

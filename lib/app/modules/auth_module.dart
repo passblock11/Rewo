@@ -1,5 +1,9 @@
+/// Demo authentication routes (`/api/auth/login`, `/api/auth/me`).
+library auth_module;
+
 import 'package:rewo/rewo.dart';
 
+/// Registers login, logout, and profile routes for the demo app.
 class AuthModule implements RewoModule {
   @override
   String get name => 'auth';
@@ -35,7 +39,10 @@ class _AuthController extends RestController {
     if (email.isEmpty || password != 'password') {
       throw UnauthorizedException('Invalid credentials');
     }
-    final token = _jwt.sign({'sub': email, 'roles': ['user']});
+    final token = _jwt.sign({
+      'sub': email,
+      'roles': ['user']
+    });
     _sessions.create(userId: email);
     return {'token': token, 'type': 'Bearer'};
   }

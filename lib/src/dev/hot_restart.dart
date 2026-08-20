@@ -111,7 +111,8 @@ class HotRestartRunner {
       return;
     }
 
-    _watchSub = StreamGroup.merge(watchers.map((w) => w.events)).listen((event) {
+    _watchSub =
+        StreamGroup.merge(watchers.map((w) => w.events)).listen((event) {
       if (_shouldRestart(event.path, event.type)) {
         _pendingChange = p.basename(event.path);
         _scheduleRestart();
@@ -144,7 +145,8 @@ class HotRestartRunner {
     final changed = _pendingChange;
     _pendingChange = null;
     // ignore: avoid_print
-    print('♻️  Hot restarting${changed != null ? ' ($changed changed)' : ''}...');
+    print(
+        '♻️  Hot restarting${changed != null ? ' ($changed changed)' : ''}...');
 
     final portToRelease = _activePort;
     final proc = _process;
@@ -173,7 +175,8 @@ class HotRestartRunner {
     );
     if (code == -1) {
       proc.kill(ProcessSignal.sigkill);
-      await proc.exitCode.timeout(const Duration(seconds: 2), onTimeout: () => -1);
+      await proc.exitCode
+          .timeout(const Duration(seconds: 2), onTimeout: () => -1);
     }
   }
 
@@ -186,8 +189,7 @@ class HotRestartRunner {
   Future<void> _waitForPortRelease(int port) async {
     for (var attempt = 0; attempt < 100; attempt++) {
       try {
-        final socket =
-            await ServerSocket.bind(InternetAddress.anyIPv4, port);
+        final socket = await ServerSocket.bind(InternetAddress.anyIPv4, port);
         await socket.close();
         return;
       } on SocketException {
@@ -205,8 +207,12 @@ class HotRestartRunner {
       environment: {...Platform.environment, ...childEnvironment},
       workingDirectory: Directory.current.path,
     );
-    _process!.stdout.transform(const SystemEncoding().decoder).listen(stdout.write);
-    _process!.stderr.transform(const SystemEncoding().decoder).listen(stderr.write);
+    _process!.stdout
+        .transform(const SystemEncoding().decoder)
+        .listen(stdout.write);
+    _process!.stderr
+        .transform(const SystemEncoding().decoder)
+        .listen(stderr.write);
   }
 
   Future<void> stop() async {

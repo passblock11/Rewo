@@ -9,7 +9,8 @@ class JobQueue {
   int _active = 0;
   bool _running = false;
 
-  void add(String name, Future<void> Function() handler, {Map<String, dynamic>? data}) {
+  void add(String name, Future<void> Function() handler,
+      {Map<String, dynamic>? data}) {
     _pending.add(_Job(name, handler, data));
     _pump();
   }

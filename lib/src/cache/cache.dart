@@ -35,7 +35,8 @@ class _Entry {
 }
 
 /// Memoize async function results.
-Future<T> cached<T>(Cache cache, String key, Future<T> Function() fn, {Duration? ttl}) async {
+Future<T> cached<T>(Cache cache, String key, Future<T> Function() fn,
+    {Duration? ttl}) async {
   final hit = cache.get<T>(key);
   if (hit != null) return hit;
   final result = await fn();

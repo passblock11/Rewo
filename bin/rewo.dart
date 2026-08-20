@@ -168,12 +168,8 @@ Run from your Rewo project root, or scaffold one:
     workingDirectory: Directory.current.path,
   );
 
-  process.stdout
-      .transform(const SystemEncoding().decoder)
-      .listen(stdout.write);
-  process.stderr
-      .transform(const SystemEncoding().decoder)
-      .listen(stderr.write);
+  process.stdout.transform(const SystemEncoding().decoder).listen(stdout.write);
+  process.stderr.transform(const SystemEncoding().decoder).listen(stderr.write);
 
   ProcessSignal.sigint.watch().listen((_) async {
     process.kill(ProcessSignal.sigint);

@@ -42,8 +42,11 @@ class AppConfigValues {
       port: DotEnv.getInt('PORT', fallback: 8080),
       environment: DotEnv.get('ENV', fallback: 'development'),
       jwtSecret: DotEnv.get('JWT_SECRET', fallback: 'dev-secret-change-me'),
-      databaseUrl: DotEnv.get('DATABASE_URL').isEmpty ? null : DotEnv.get('DATABASE_URL'),
-      directUrl: DotEnv.get('DIRECT_URL').isEmpty ? null : DotEnv.get('DIRECT_URL'),
+      databaseUrl: DotEnv.get('DATABASE_URL').isEmpty
+          ? null
+          : DotEnv.get('DATABASE_URL'),
+      directUrl:
+          DotEnv.get('DIRECT_URL').isEmpty ? null : DotEnv.get('DIRECT_URL'),
       storagePath: DotEnv.get('STORAGE_PATH', fallback: './storage'),
       logRequests: DotEnv.getBool('LOG_REQUESTS', fallback: true),
       rateLimit: DotEnv.getInt('RATE_LIMIT', fallback: 100),

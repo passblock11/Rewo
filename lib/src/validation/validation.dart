@@ -12,7 +12,8 @@ class Validator {
       final rule = entry.value;
       final value = data[field];
 
-      if (rule.required && (value == null || (value is String && value.isEmpty))) {
+      if (rule.required &&
+          (value == null || (value is String && value.isEmpty))) {
         errors[field] = '$field is required';
         continue;
       }
@@ -20,7 +21,8 @@ class Validator {
 
       if (value is String) {
         if (rule.minLength != null && value.length < rule.minLength!) {
-          errors[field] = '$field must be at least ${rule.minLength} characters';
+          errors[field] =
+              '$field must be at least ${rule.minLength} characters';
         }
         if (rule.maxLength != null && value.length > rule.maxLength!) {
           errors[field] = '$field must be at most ${rule.maxLength} characters';
@@ -65,10 +67,10 @@ class Validator {
     final local = value.substring(0, at);
     final domain = value.substring(at + 1);
 
-    if (local.length > 64 || domain.isEmpty || domain.length > 253) return false;
-    if (local.startsWith('.') ||
-        local.endsWith('.') ||
-        local.contains('..')) {
+    if (local.length > 64 || domain.isEmpty || domain.length > 253) {
+      return false;
+    }
+    if (local.startsWith('.') || local.endsWith('.') || local.contains('..')) {
       return false;
     }
     if (domain.startsWith('.') ||
@@ -83,7 +85,8 @@ class Validator {
     const domainPart =
         r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$';
 
-    return RegExp(localPart).hasMatch(local) && RegExp(domainPart).hasMatch(domain);
+    return RegExp(localPart).hasMatch(local) &&
+        RegExp(domainPart).hasMatch(domain);
   }
 }
 

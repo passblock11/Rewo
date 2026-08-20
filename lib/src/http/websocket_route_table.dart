@@ -19,7 +19,8 @@ class CompiledWebSocketRoute {
   bool get isStatic => !path.contains(':');
 
   Map<String, String> extractParams(String actualPath) {
-    final actualSegments = actualPath.split('/').where((s) => s.isNotEmpty).toList();
+    final actualSegments =
+        actualPath.split('/').where((s) => s.isNotEmpty).toList();
     final params = <String, String>{};
     if (segments.length != actualSegments.length) return params;
     for (var i = 0; i < segments.length; i++) {

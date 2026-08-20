@@ -32,43 +32,55 @@ import 'transaction/transaction.dart';
 
 export 'http/route_table.dart' show RouteHandler;
 
+/// Callback used by [Rewo.run] to register routes and services.
 typedef ConfigureCallback = void Function(Rewo app);
 
+/// Base class for REST controllers mounted with [Rewo.mount].
 abstract class RestController {
+  /// URL prefix for all routes registered by this controller.
   String get basePath => '';
+
+  /// Register HTTP routes on [registrar].
   void registerRoutes(RouteRegistrar registrar);
 }
 
+/// Fluent route builder passed to [RestController.registerRoutes].
 class RouteRegistrar {
+  /// Creates a registrar scoped to [basePath] on [app].
   RouteRegistrar(this._app, this._basePath);
 
   final Rewo _app;
   final String _basePath;
 
+  /// Registers a `GET` route.
   void get(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
     _app._addRoute('GET', _join(_basePath, path), handler,
         middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a `POST` route.
   void post(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
     _app._addRoute('POST', _join(_basePath, path), handler,
         middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a `PUT` route.
   void put(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
     _app._addRoute('PUT', _join(_basePath, path), handler,
         middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a `PATCH` route.
   void patch(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
     _app._addRoute('PATCH', _join(_basePath, path), handler,
         middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a `DELETE` route.
   void delete(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
     _app._addRoute('DELETE', _join(_basePath, path), handler,
@@ -82,7 +94,9 @@ class RouteRegistrar {
   }
 }
 
+/// Core HTTP application — register routes, middleware, and start the server.
 class Rewo {
+  /// Creates an app with optional [config], [engine], and TLS [securityContext].
   Rewo({
     AppConfig? config,
     ServerEngine? engine,
@@ -95,18 +109,30 @@ class Rewo {
         scheduler = Scheduler(),
         _securityContext = securityContext;
 
+  /// Resolved host, port, JWT secret, and performance settings.
   final AppConfig config;
+
+  /// Active HTTP server implementation (`shelf`, `native`, or `http2`).
   final ServerEngine engine;
+
+  /// Dependency injection container for services and repositories.
   final ServiceContainer container;
+
+  /// In-process pub/sub for domain events.
   final EventBus events;
+
+  /// Coordinates transactional units of work across services.
   final TransactionManager transactions;
+
+  /// Cron-style scheduled tasks registered via [schedule].
   final Scheduler scheduler;
   final SecurityContext? _securityContext;
 
   final Router _router = Router();
   final RouteTable _routeTable = RouteTable();
   final WebSocketRouteTable _webSocketRouteTable = WebSocketRouteTable();
-  final WebSocketConnectionTracker _webSocketTracker = WebSocketConnectionTracker();
+  final WebSocketConnectionTracker _webSocketTracker =
+      WebSocketConnectionTracker();
   final List<MiddlewareHandler> _globalMiddleware = [];
   final List<_RouteInput> _routes = [];
   final List<_WebSocketRouteInput> _webSocketRoutes = [];
@@ -116,27 +142,41 @@ class Rewo {
   NativeHttpServer? _nativeServer;
   Http2ServerEngine? _http2Server;
 
+  /// Liveness and readiness probes for `/health` and `/ready`.
   final HealthCheck health = HealthCheck();
+
+  /// Request counters exported at `/metrics`.
   final Metrics metrics = Metrics();
+
+  /// OpenAPI 3 spec generator for registered routes.
   final OpenApiGenerator openApi = OpenApiGenerator();
 
+  /// Compiled HTTP routes (available after [compileRoutesForTest] or [listen]).
   RouteTable get routeTable => _routeTable;
+
+  /// Registered WebSocket routes.
   WebSocketRouteTable get webSocketRouteTable => _webSocketRouteTable;
 
+  /// Builds the route table without starting a server (for tests).
   void compileRoutesForTest() => _compileRoutes();
 
+  /// Registers a singleton service in [container].
   void singleton<T>(T instance) => container.registerSingleton<T>(instance);
 
+  /// Registers a factory that creates a new instance per resolve.
   void factory<T>(T Function(ServiceContainer c) creator) {
     container.registerFactory<T>((c) => creator(c));
   }
 
+  /// Registers a lazily initialized singleton.
   void lazy<T>(T Function(ServiceContainer c) creator) {
     container.registerLazySingleton<T>((c) => creator(c));
   }
 
+  /// Appends global middleware executed before every route.
   void use(Middleware middleware) => _globalMiddleware.add(middleware.handler);
 
+  /// Installs error handling, security headers, CORS, and logging defaults.
   void useDefaults() {
     use(ErrorMiddleware(
       development: developmentErrorDetails(isProduction: config.isProduction),
@@ -153,6 +193,7 @@ class Rewo {
     }
   }
 
+  /// Registers `/health`, `/ready`, `/metrics`, and `/openapi.json`.
   void useOpsEndpoints() {
     get('/health', (_) async => health.liveness());
     get('/ready', (_) async => health.readiness());
@@ -163,38 +204,50 @@ class Rewo {
     get('/openapi.json', (_) async => openApi.generate(_routeTable));
   }
 
+  /// Serves files from [directory] under [prefix].
   void useStaticFiles(String directory, {String prefix = '/public'}) {
     use(StaticFilesMiddleware(directory, prefix: prefix));
   }
 
+  /// Mounts a [RestController] and its declared routes.
   void mount(RestController controller) {
     final registrar = RouteRegistrar(this, controller.basePath);
     controller.registerRoutes(registrar);
   }
 
+  /// Registers a top-level `GET` route.
   void get(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _addRoute('GET', path, handler, middleware: middleware, statusCode: statusCode);
+    _addRoute('GET', path, handler,
+        middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a top-level `POST` route.
   void post(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _addRoute('POST', path, handler, middleware: middleware, statusCode: statusCode);
+    _addRoute('POST', path, handler,
+        middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a top-level `PUT` route.
   void put(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _addRoute('PUT', path, handler, middleware: middleware, statusCode: statusCode);
+    _addRoute('PUT', path, handler,
+        middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a top-level `PATCH` route.
   void patch(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _addRoute('PATCH', path, handler, middleware: middleware, statusCode: statusCode);
+    _addRoute('PATCH', path, handler,
+        middleware: middleware, statusCode: statusCode);
   }
 
+  /// Registers a top-level `DELETE` route.
   void delete(String path, RouteHandler handler,
       {List<MiddlewareHandler>? middleware, int statusCode = 200}) {
-    _addRoute('DELETE', path, handler, middleware: middleware, statusCode: statusCode);
+    _addRoute('DELETE', path, handler,
+        middleware: middleware, statusCode: statusCode);
   }
 
   /// Registers a WebSocket endpoint (native + shelf engines).
@@ -213,10 +266,12 @@ class Rewo {
     ));
   }
 
+  /// Schedules [task] to run every [intervalSeconds].
   void schedule(int intervalSeconds, FutureOr<void> Function() task) {
     scheduler.cronSeconds(intervalSeconds, task);
   }
 
+  /// Shared worker pool for CPU-heavy work off the event loop.
   IsolatePool get isolates {
     return _isolatePool ??= sharedIsolatePool(
       workers: config.performance.isolateWorkers > 0
@@ -225,11 +280,13 @@ class Rewo {
     );
   }
 
+  /// Binds to [config.host]:[config.port] and starts serving.
   Future<void> listen() async {
     _compileRoutes();
 
     if (config.performance.isolateWorkers > 0) {
-      _isolatePool = sharedIsolatePool(workers: config.performance.isolateWorkers);
+      _isolatePool =
+          sharedIsolatePool(workers: config.performance.isolateWorkers);
     }
 
     switch (engine) {
@@ -247,6 +304,7 @@ class Rewo {
       Future<shelf.Response> shelfHandler(shelf.Request request) async {
         return _handleShelf(request, route);
       }
+
       switch (route.method) {
         case 'GET':
           _router.get(toShelfPath(route.path), shelfHandler);
@@ -286,7 +344,8 @@ class Rewo {
           print('Shelf server error: $e\n$st');
           try {
             request.response.statusCode = 500;
-            request.response.write(jsonEncode({'error': 'Internal server error'}));
+            request.response
+                .write(jsonEncode({'error': 'Internal server error'}));
             await request.response.close();
           } on Object {
             // Response may already be committed.
@@ -322,7 +381,8 @@ class Rewo {
     await _listenNative();
   }
 
-  Future<shelf.Response> _handleShelf(shelf.Request request, CompiledRoute route) async {
+  Future<shelf.Response> _handleShelf(
+      shelf.Request request, CompiledRoute route) async {
     final lazy = config.performance.lazyBodyParsing;
     final ctx = RequestContext(
       method: request.method,
@@ -336,7 +396,8 @@ class Rewo {
     );
     return route.pipeline.run(ctx, (c) async {
       final result = await route.handler(c);
-      return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+      return AppResponse.fromHandlerResult(result,
+          statusCode: route.statusCode);
     });
   }
 
@@ -397,9 +458,12 @@ class Rewo {
 
   bool _isAddressInUse(SocketException e) {
     final code = e.osError?.errorCode;
-    return code == 48 || code == 98 || e.message.contains('Address already in use');
+    return code == 48 ||
+        code == 98 ||
+        e.message.contains('Address already in use');
   }
 
+  /// Stops schedulers, WebSockets, and the HTTP server.
   Future<void> close() async {
     scheduler.stopAll();
     await _webSocketTracker.closeAll();
@@ -409,6 +473,7 @@ class Rewo {
     await _http2Server?.close();
   }
 
+  /// Creates an app, runs [configure], listens, and handles graceful shutdown.
   static Future<Rewo> run(
     ConfigureCallback configure, {
     AppConfig? config,

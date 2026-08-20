@@ -34,14 +34,16 @@ class RouteGenerator extends GeneratorForAnnotation<Controller> {
     buffer.writeln('  void registerRoutes(RouteRegistrar r) {');
     buffer.writeln('    final c = this as $className;');
 
-    for (final method in element.methods.where((m) => !m.isPrivate && !m.isStatic)) {
+    for (final method
+        in element.methods.where((m) => !m.isPrivate && !m.isStatic)) {
       final route = _readRoute(method);
       if (route == null) continue;
 
       final status = _readStatusCode(method);
       final statusArg = status != 200 ? ', statusCode: $status' : '';
 
-      buffer.writeln("    r.${route.method}('${route.path}', c.${method.name}$statusArg);");
+      buffer.writeln(
+          "    r.${route.method}('${route.path}', c.${method.name}$statusArg);");
     }
 
     buffer.writeln('  }');
@@ -60,7 +62,8 @@ class RouteGenerator extends GeneratorForAnnotation<Controller> {
     final del = _reader(_delete, method);
     if (del != null) return _RouteInfo('delete', del.read('path').stringValue);
     final patch = _reader(_patch, method);
-    if (patch != null) return _RouteInfo('patch', patch.read('path').stringValue);
+    if (patch != null)
+      return _RouteInfo('patch', patch.read('path').stringValue);
     return null;
   }
 

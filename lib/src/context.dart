@@ -83,7 +83,8 @@ class RequestContext {
   T resolve<T>() => container.resolve<T>() as T;
   bool hasRole(String role) => roles.contains(role);
 
-  RequestContext withAuth({required String userId, List<String> roles = const []}) {
+  RequestContext withAuth(
+      {required String userId, List<String> roles = const []}) {
     return _copy(userId: userId, roles: roles);
   }
 
@@ -139,6 +140,7 @@ class BodyReader {
 }
 
 /// Build a Set-Cookie header value.
-String setCookie(String name, String value, {Duration maxAge = const Duration(hours: 24)}) {
+String setCookie(String name, String value,
+    {Duration maxAge = const Duration(hours: 24)}) {
   return '$name=$value; HttpOnly; Path=/; Max-Age=${maxAge.inSeconds}; SameSite=Lax';
 }

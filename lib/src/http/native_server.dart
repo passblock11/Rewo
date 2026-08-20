@@ -39,7 +39,8 @@ class NativeHttpServer {
       } catch (e, st) {
         // ignore: avoid_print
         print('Native server error: $e\n$st');
-        await _writeJson(request.response, 500, {'error': 'Internal server error'});
+        await _writeJson(
+            request.response, 500, {'error': 'Internal server error'});
       }
     });
 
@@ -82,7 +83,8 @@ class NativeHttpServer {
     try {
       final shelfResponse = await route.pipeline.run(ctx, (c) async {
         final result = await route.handler(c);
-        return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+        return AppResponse.fromHandlerResult(result,
+            statusCode: route.statusCode);
       });
       await _writeShelfResponse(request.response, shelfResponse);
     } on FrameworkException catch (e) {

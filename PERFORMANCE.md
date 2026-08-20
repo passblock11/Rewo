@@ -2,6 +2,8 @@
 
 Rewo is designed to beat Spring Boot and Node.js frameworks on **throughput**, **latency**, and **startup time** by leaning into Dart's strengths.
 
+> **Docs:** [README](README.md) · [Getting started](GETTING_STARTED.md) · [pub.dev](https://pub.dev/packages/rewo) · [GitHub](https://github.com/passblock11/Rewo)
+
 ## Why Rewo can be faster
 
 | Bottleneck | Spring Boot | Node.js (Express/Fastify) | Rewo |

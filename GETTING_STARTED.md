@@ -15,7 +15,7 @@ dart pub add rewo
 ```yaml
 # pubspec.yaml
 dependencies:
-  rewo: ^1.0.2
+  rewo: ^1.0.15
 ```
 
 ### CLI + new project (recommended)
@@ -171,6 +171,6 @@ rewo run                        # production server
 
 ## Need help?
 
-- [README](https://github.com/passblock11/Rewo#readme)
+- [GitHub repository](https://github.com/passblock11/Rewo)
 - [pub.dev/packages/rewo](https://pub.dev/packages/rewo)
-- [Avanti Inc.](https://avantiinc.xyz)
+- [pub.dev score (160/160)](https://pub.dev/packages/rewo/score)

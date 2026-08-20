@@ -11,7 +11,10 @@ void main() {
   group('JwtService', () {
     test('sign and verify', () {
       final jwt = JwtService(secret: 'test-secret-key-12345');
-      final token = jwt.sign({'sub': 'user1', 'roles': ['admin']});
+      final token = jwt.sign({
+        'sub': 'user1',
+        'roles': ['admin']
+      });
       final payload = jwt.verify(token);
       expect(payload['sub'], 'user1');
     });
@@ -75,7 +78,6 @@ void main() {
       expect(spec['paths'], isNotEmpty);
     });
   });
-
 
   group('Metrics', () {
     test('exports prometheus format', () {

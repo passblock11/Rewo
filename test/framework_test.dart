@@ -22,7 +22,9 @@ void main() {
   group('Validator', () {
     test('validates required email', () {
       expect(
-        () => Validator.validateOrThrow({'email': 'bad'}, {
+        () => Validator.validateOrThrow({
+          'email': 'bad'
+        }, {
           'email': const ValidateRule.email(),
         }),
         throwsA(isA<ValidationException>()),

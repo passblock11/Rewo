@@ -17,7 +17,11 @@ class PageRequest {
 
 /// Paginated response wrapper.
 class Page<T> {
-  Page({required this.items, required this.page, required this.limit, required this.total});
+  Page(
+      {required this.items,
+      required this.page,
+      required this.limit,
+      required this.total});
 
   final List<T> items;
   final int page;

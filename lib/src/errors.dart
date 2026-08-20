@@ -17,7 +17,8 @@ class BadRequestException extends FrameworkException {
 }
 
 class UnauthorizedException extends FrameworkException {
-  UnauthorizedException([super.message = 'Unauthorized']) : super(statusCode: 401);
+  UnauthorizedException([super.message = 'Unauthorized'])
+      : super(statusCode: 401);
 }
 
 class ForbiddenException extends FrameworkException {
@@ -25,6 +26,7 @@ class ForbiddenException extends FrameworkException {
 }
 
 class ValidationException extends FrameworkException {
-  ValidationException(this.errors) : super('Validation failed', statusCode: 422);
+  ValidationException(this.errors)
+      : super('Validation failed', statusCode: 422);
   final Map<String, String> errors;
 }

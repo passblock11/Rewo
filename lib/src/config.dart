@@ -32,7 +32,9 @@ class AppConfig {
       port: DotEnv.getInt('PORT', fallback: 8080),
       environment: env,
       jwtSecret: DotEnv.get('JWT_SECRET', fallback: 'dev-secret-change-me'),
-      databaseUrl: DotEnv.get('DATABASE_URL').isEmpty ? null : DotEnv.get('DATABASE_URL'),
+      databaseUrl: DotEnv.get('DATABASE_URL').isEmpty
+          ? null
+          : DotEnv.get('DATABASE_URL'),
       storagePath: DotEnv.get('STORAGE_PATH', fallback: './storage'),
       logRequests: DotEnv.getBool('LOG_REQUESTS', fallback: !isProd),
       rateLimit: DotEnv.getInt('RATE_LIMIT', fallback: 100),
@@ -41,7 +43,8 @@ class AppConfig {
     );
   }
 
-  factory AppConfig.turbo({int port = 8080, ServerEngine engine = ServerEngine.native}) =>
+  factory AppConfig.turbo(
+          {int port = 8080, ServerEngine engine = ServerEngine.native}) =>
       AppConfig(
         port: port,
         environment: 'production',

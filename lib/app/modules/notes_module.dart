@@ -1,7 +1,11 @@
+/// Demo note upload and retrieval using [Storage].
+library notes_module;
+
 import 'dart:convert';
 
 import 'package:rewo/rewo.dart';
 
+/// Registers file-backed note routes for the demo app.
 class NotesModule implements RewoModule {
   @override
   String get name => 'notes';
@@ -22,7 +26,9 @@ class NotesModule implements RewoModule {
     app.get('/api/notes/:name', (ctx) async {
       final name = ctx.param('name')!;
       final path = 'notes/$name';
-      if (!await storage.exists(path)) throw NotFoundException('Note not found');
+      if (!await storage.exists(path)) {
+        throw NotFoundException('Note not found');
+      }
       final content = utf8.decode(await storage.read(path));
       return {'name': name, 'content': content};
     });

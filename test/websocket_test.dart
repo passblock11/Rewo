@@ -42,7 +42,8 @@ void main() {
 
     test('rejects missing JWT when useDefaults() is enabled', () async {
       final port = 8800 + DateTime.now().millisecondsSinceEpoch % 500;
-      final app = _createWsApp(port: port, engine: ServerEngine.native, jwt: jwt);
+      final app =
+          _createWsApp(port: port, engine: ServerEngine.native, jwt: jwt);
       await app.listen();
 
       try {
@@ -87,7 +88,8 @@ void main() {
 
     test('accepts valid JWT via Authorization header', () async {
       final port = 9000 + DateTime.now().millisecondsSinceEpoch % 500;
-      final app = _createWsApp(port: port, engine: ServerEngine.native, jwt: jwt);
+      final app =
+          _createWsApp(port: port, engine: ServerEngine.native, jwt: jwt);
       await app.listen();
 
       final token = jwt.sign({
@@ -100,7 +102,8 @@ void main() {
         'ws://localhost:$port/ws/test',
         headers: {'Authorization': 'Bearer $token'},
       );
-      final message = jsonDecode(await socket.first as String) as Map<String, dynamic>;
+      final message =
+          jsonDecode(await socket.first as String) as Map<String, dynamic>;
       expect(message['type'], 'welcome');
       expect(message['user'], 'user-2');
       await socket.close();
@@ -146,7 +149,8 @@ void main() {
     test('accepts valid JWT via query token', () async {
       final port = 9200 + DateTime.now().millisecondsSinceEpoch % 500;
       final jwt = JwtService(secret: 'test-secret');
-      final app = _createWsApp(port: port, engine: ServerEngine.shelf, jwt: jwt);
+      final app =
+          _createWsApp(port: port, engine: ServerEngine.shelf, jwt: jwt);
       await app.listen();
 
       final token = jwt.sign({
@@ -158,7 +162,8 @@ void main() {
       final socket = await WebSocket.connect(
         'ws://localhost:$port/ws/test?token=$token',
       );
-      final message = jsonDecode(await socket.first as String) as Map<String, dynamic>;
+      final message =
+          jsonDecode(await socket.first as String) as Map<String, dynamic>;
       expect(message['type'], 'welcome');
       expect(message['user'], 'shelf-user');
       await socket.close();

@@ -22,10 +22,12 @@ class AppResponse {
     return shelf.Response(
       statusCode,
       body: body,
-      headers: headers == null ? _jsonHeaderCache : {
-        'content-type': _jsonContentType,
-        ...headers,
-      },
+      headers: headers == null
+          ? _jsonHeaderCache
+          : {
+              'content-type': _jsonContentType,
+              ...headers,
+            },
     );
   }
 
@@ -50,7 +52,8 @@ class AppResponse {
     return shelf.Response(statusCode, headers: {'location': location});
   }
 
-  static shelf.Response fromHandlerResult(dynamic result, {int statusCode = 200}) {
+  static shelf.Response fromHandlerResult(dynamic result,
+      {int statusCode = 200}) {
     if (result == null) return noContent();
     if (result is shelf.Response) return result;
     if (result is String) return text(result, statusCode: statusCode);

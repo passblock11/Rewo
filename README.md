@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://pub.dev/packages/rewo"><img src="https://img.shields.io/pub/v/rewo.svg" alt="pub version"></a>
-  <a href="https://pub.dev/packages/rewo/score"><img src="https://img.shields.io/pub/points/rewo" alt="pub points"></a>
+  <a href="https://pub.dev/packages/rewo/score"><img src="https://img.shields.io/pub/points/rewo/160" alt="pub points"></a>
   <a href="https://pub.dev/packages/rewo"><img src="https://img.shields.io/badge/Dart-%3E%3D3.3.0-0175C2" alt="Dart SDK"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
 </p>
@@ -32,6 +32,8 @@ You do **not** need to know Spring, Node.js, or Python. If you can write basic D
 - **Deploy** — compile to a small native binary
 
 Think of Rewo as **Express.js for Dart**, with batteries included.
+
+**Package quality:** [160/160 pub points](https://pub.dev/packages/rewo/score) on pub.dev — valid metadata, documented public API, static analysis, and up-to-date dependencies.
 
 ---
 
@@ -89,7 +91,7 @@ dart pub global activate rewo
 ```yaml
 # pubspec.yaml
 dependencies:
-  rewo: ^1.0.14
+  rewo: ^1.0.15
 ```
 
 Then run:
@@ -759,6 +761,20 @@ Set environment variables in your hosting dashboard: `JWT_SECRET`, `DATABASE_URL
 
 ---
 
+## 📚 Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [README.md](README.md) | Overview, features, and 20 code examples |
+| [GETTING_STARTED.md](GETTING_STARTED.md) | Install, run, deploy, and project layout |
+| [DATABASE.md](DATABASE.md) | Postgres, env vars, and ORM integration |
+| [PERFORMANCE.md](PERFORMANCE.md) | Turbo mode, native engine, and codegen |
+| [PUBLISHING.md](PUBLISHING.md) | pub.dev release checklist |
+| [example/README.md](example/README.md) | Runnable demo apps |
+| [pub.dev API docs](https://pub.dev/documentation/rewo/latest/) | Generated dartdoc reference |
+
+---
+
 ## 📞 Support & Community
 
 - 🐛 **Bug Reports** — [GitHub Issues](https://github.com/passblock11/Rewo/issues)
@@ -774,7 +790,7 @@ Set environment variables in your hosting dashboard: `JWT_SECRET`, `DATABASE_URL
 ---
 
 <p align="center">
-  Built with ❤️ for the Dart community by <a href="https://avantiinc.xyz">Avanti Inc.</a>
+  Built with ❤️ for the Dart community — <a href="https://github.com/passblock11/Rewo">Rewo on GitHub</a>
 </p>
 
 <p align="center">
@@ -785,4 +801,4 @@ Set environment variables in your hosting dashboard: `JWT_SECRET`, `DATABASE_URL
 
 ## License
 
-MIT © [Avanti Inc.](https://avantiinc.xyz)
+MIT © [Rewo contributors](https://github.com/passblock11/Rewo)

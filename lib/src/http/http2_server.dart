@@ -31,7 +31,8 @@ class Http2ServerEngine {
   Future<void> listen() async {
     // HTTP/2 streams are handled via [handleSocket] when behind a TLS terminator.
     // ignore: avoid_print
-    print('🚀 Rewo [http2] ready — use handleSocket() or native HTTP/1.1 fallback');
+    print(
+        '🚀 Rewo [http2] ready — use handleSocket() or native HTTP/1.1 fallback');
   }
 
   Future<void> close() async {
@@ -94,7 +95,8 @@ class Http2ServerEngine {
     try {
       final response = await route.pipeline.run(ctx, (c) async {
         final result = await route.handler(c);
-        return AppResponse.fromHandlerResult(result, statusCode: route.statusCode);
+        return AppResponse.fromHandlerResult(result,
+            statusCode: route.statusCode);
       });
       final body = await response.read().expand((e) => e).toList();
       _sendBytes(stream, response.statusCode, body);
@@ -103,7 +105,8 @@ class Http2ServerEngine {
     }
   }
 
-  void _sendJson(ServerTransportStream stream, int status, Map<String, dynamic> body) {
+  void _sendJson(
+      ServerTransportStream stream, int status, Map<String, dynamic> body) {
     _sendBytes(stream, status, utf8.encode(jsonEncode(body)));
   }
 

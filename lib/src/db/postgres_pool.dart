@@ -46,7 +46,8 @@ class PostgresPool {
   }
 
   Future<Connection> _connect() {
-    return Connection.open(endpoint, settings: ConnectionSettings(sslMode: sslMode));
+    return Connection.open(endpoint,
+        settings: ConnectionSettings(sslMode: sslMode));
   }
 
   Future<List<Map<String, dynamic>>> query(
@@ -86,7 +87,8 @@ class PostgresPool {
     });
   }
 
-  Future<T> _withConnection<T>(Future<T> Function(Connection conn) action) async {
+  Future<T> _withConnection<T>(
+      Future<T> Function(Connection conn) action) async {
     if (_closed) throw StateError('Pool is closed');
     if (_idle.isEmpty && _busy.length < maxConnections) {
       _idle.add(await _connect());

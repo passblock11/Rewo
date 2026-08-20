@@ -22,7 +22,8 @@ class JwtMiddleware extends Middleware {
           throw UnauthorizedException('Missing bearer token');
         }
         final payload = jwt.verify(token);
-        final userId = payload['sub'] as String? ?? payload['userId'] as String?;
+        final userId =
+            payload['sub'] as String? ?? payload['userId'] as String?;
         final userRoles = (payload['roles'] as List?)?.cast<String>() ?? [];
         if (userId == null) throw UnauthorizedException('Invalid JWT payload');
         if (roles.isNotEmpty && !roles.any(userRoles.contains)) {

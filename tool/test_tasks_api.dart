@@ -91,7 +91,7 @@ Future<void> main(List<String> args) async {
     assert(openApiRes.statusCode == 200);
     pass('GET /openapi.json');
 
-  print('\n🎉 All API tests passed on port $port');
+    print('\n🎉 All API tests passed on port $port');
   } catch (e, st) {
     print('❌ Test failed: $e\n$st');
     exit(1);

@@ -36,7 +36,8 @@ void main() {
         contains('name: my_api'));
     expect(File(p.join(projectPath, 'bin/server.dart')).existsSync(), isTrue);
     expect(File(p.join(projectPath, 'lib/app.dart')).existsSync(), isTrue);
-    expect(File(p.join(projectPath, 'lib/modules/items_module.dart')).existsSync(),
+    expect(
+        File(p.join(projectPath, 'lib/modules/items_module.dart')).existsSync(),
         isTrue);
     expect(File(p.join(projectPath, '.env.example')).existsSync(), isTrue);
 
@@ -44,8 +45,8 @@ void main() {
         workingDirectory: projectPath);
     expect(pubGet.exitCode, 0, reason: pubGet.stderr.toString());
 
-    final analyze = await Process.run('dart', ['analyze'],
-        workingDirectory: projectPath);
+    final analyze =
+        await Process.run('dart', ['analyze'], workingDirectory: projectPath);
     expect(analyze.exitCode, 0, reason: analyze.stdout.toString());
   });
 

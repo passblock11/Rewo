@@ -129,7 +129,8 @@ class _IsolateWorker {
         final result = Function.apply(message.callback, [message.message]);
         message.replyPort.send(_ResultMessage(id: message.id, value: result));
       } catch (e, st) {
-        message.replyPort.send(_ResultMessage(id: message.id, error: e, stack: st));
+        message.replyPort
+            .send(_ResultMessage(id: message.id, error: e, stack: st));
       }
     });
   }

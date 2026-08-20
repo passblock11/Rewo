@@ -16,7 +16,9 @@ class MultipartParser {
     final boundary = '--${boundaryMatch.group(1)}';
     final bytes = await ctx.bodyBytes;
     final text = utf8.decode(bytes);
-    final parts = text.split(boundary).where((p) => p.trim().isNotEmpty && p.trim() != '--');
+    final parts = text
+        .split(boundary)
+        .where((p) => p.trim().isNotEmpty && p.trim() != '--');
 
     final fields = <String, String>{};
     final files = <String, MultipartFile>{};
@@ -25,7 +27,8 @@ class MultipartParser {
       final sections = part.split('\r\n\r\n');
       if (sections.length < 2) continue;
       final headers = sections.first;
-      final body = sections.sublist(1).join('\r\n\r\n').replaceAll('\r\n--', '').trim();
+      final body =
+          sections.sublist(1).join('\r\n\r\n').replaceAll('\r\n--', '').trim();
 
       final nameMatch = RegExp(r'name="([^"]+)"').firstMatch(headers);
       if (nameMatch == null) continue;
@@ -54,7 +57,8 @@ class MultipartForm {
 }
 
 class MultipartFile {
-  MultipartFile({required this.fieldName, required this.filename, required this.bytes});
+  MultipartFile(
+      {required this.fieldName, required this.filename, required this.bytes});
   final String fieldName;
   final String filename;
   final List<int> bytes;

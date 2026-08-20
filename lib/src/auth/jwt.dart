@@ -13,7 +13,8 @@ class JwtService {
   final Duration expiry;
 
   String sign(Map<String, dynamic> payload) {
-    final header = base64Url.encode(utf8.encode(jsonEncode({'alg': 'HS256', 'typ': 'JWT'})));
+    final header = base64Url
+        .encode(utf8.encode(jsonEncode({'alg': 'HS256', 'typ': 'JWT'})));
     final claims = Map<String, dynamic>.from(payload);
     claims['exp'] = DateTime.now().add(expiry).millisecondsSinceEpoch ~/ 1000;
     final body = base64Url.encode(utf8.encode(jsonEncode(claims)));
@@ -65,7 +66,8 @@ class JwtService {
 class SessionStore {
   final Map<String, Session> _sessions = {};
 
-  Session create({required String userId, Map<String, dynamic> data = const {}}) {
+  Session create(
+      {required String userId, Map<String, dynamic> data = const {}}) {
     final id = _generateId();
     final session = Session(id: id, userId: userId, data: data);
     _sessions[id] = session;

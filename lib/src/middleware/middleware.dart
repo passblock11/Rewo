@@ -26,7 +26,8 @@ class MiddlewarePipeline {
       if (index >= _middlewares.length) {
         return terminal(current);
       }
-      return _middlewares[index](current, (nextCtx) => dispatch(index + 1, nextCtx));
+      return _middlewares[index](
+          current, (nextCtx) => dispatch(index + 1, nextCtx));
     }
 
     return dispatch(0, ctx);

@@ -24,7 +24,7 @@ class AuthMiddleware extends Middleware {
           final userId = parts.first;
           final roles = parts.length > 1 ? parts.sublist(1) : <String>[];
 
-          return next(ctx.withAuth(userId: userId, roles: roles));
+          return await next(ctx.withAuth(userId: userId, roles: roles));
         } catch (_) {
           throw UnauthorizedException('Invalid token');
         }

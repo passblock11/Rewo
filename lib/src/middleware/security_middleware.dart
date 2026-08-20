@@ -4,7 +4,8 @@ import 'middleware.dart';
 
 /// Rate limiting middleware — token bucket per IP.
 class RateLimitMiddleware extends Middleware {
-  RateLimitMiddleware({this.maxRequests = 100, this.window = const Duration(minutes: 1)});
+  RateLimitMiddleware(
+      {this.maxRequests = 100, this.window = const Duration(minutes: 1)});
 
   final int maxRequests;
   final Duration window;
@@ -12,8 +13,11 @@ class RateLimitMiddleware extends Middleware {
 
   @override
   MiddlewareHandler get handler => (ctx, next) async {
-        final key = ctx.headers['x-forwarded-for'] ?? ctx.headers['x-real-ip'] ?? 'local';
-        final bucket = _buckets.putIfAbsent(key, () => _Bucket(maxRequests, window));
+        final key = ctx.headers['x-forwarded-for'] ??
+            ctx.headers['x-real-ip'] ??
+            'local';
+        final bucket =
+            _buckets.putIfAbsent(key, () => _Bucket(maxRequests, window));
         if (!bucket.allow()) {
           return AppResponse.json(
             {'error': 'Too many requests'},
@@ -103,5 +107,6 @@ class StructuredLoggingMiddleware extends Middleware {
         return response;
       };
 
-  String jsonLog(Map<String, dynamic> data) => data.entries.map((e) => '${e.key}=${e.value}').join(' ');
+  String jsonLog(Map<String, dynamic> data) =>
+      data.entries.map((e) => '${e.key}=${e.value}').join(' ');
 }

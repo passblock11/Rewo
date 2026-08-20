@@ -7,7 +7,14 @@ import 'middleware.dart';
 class CorsMiddleware extends Middleware {
   CorsMiddleware({
     this.allowedOrigins = const ['*'],
-    this.allowedMethods = const ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    this.allowedMethods = const [
+      'GET',
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE',
+      'OPTIONS'
+    ],
     this.allowedHeaders = const ['*'],
   });
 
@@ -29,10 +36,10 @@ class CorsMiddleware extends Middleware {
 
   Map<String, String> _corsHeaders(RequestContext ctx) {
     final origin = ctx.headers['origin'] ?? ctx.headers['Origin'] ?? '*';
-    final allowOrigin = allowedOrigins.contains('*') ||
-            allowedOrigins.contains(origin)
-        ? origin
-        : allowedOrigins.first;
+    final allowOrigin =
+        allowedOrigins.contains('*') || allowedOrigins.contains(origin)
+            ? origin
+            : allowedOrigins.first;
 
     return {
       'access-control-allow-origin': allowOrigin,
